@@ -1,13 +1,18 @@
+// background.js
 const OWNER = 'rodnen';
 const REPO  = 'yasno-extension';
+const CACHE_KEY_PREFIX = 'cache:yasno:table';
+const CACHE_TTL_MIN    = 15;                // хвилини
+
 const CURRENT_VERSION = chrome.runtime.getManifest().version;
 
+/* ---------- оновлення розширення ---------- */
 async function checkUpdate() {
   try {
     const rsp = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=1`);
     if (!rsp.ok) throw new Error('GitHub unreachable');
     const [latest] = await rsp.json();
-    const latestVer = latest.tag_name;        
+    const latestVer = latest.tag_name;
     const url       = latest.html_url;
 
     switch (semverCompare(CURRENT_VERSION, latestVer)) {
@@ -19,7 +24,6 @@ async function checkUpdate() {
           title:   'New version available',
           message: `${REPO} ${latestVer} is out. Click to download.`
         });
-
         chrome.notifications.onClicked.addListener(id => {
           if (id === 'update-available') {
             chrome.tabs.create({ url });
@@ -34,7 +38,6 @@ async function checkUpdate() {
         console.log('[BG] local is NEWER');
         break;
     }
-
   } catch (e) {
     console.warn('[Update check]', e);
   }
@@ -42,11 +45,8 @@ async function checkUpdate() {
 
 function semverCompare(a, b) {
   const clean = v => v.replace(/^[^0-9]*/, '').split('.').map(Number);
-
   const va = clean(a);
   const vb = clean(b);
-
-  // 2. порівнюємо по частинах
   for (let i = 0; i < 3; i++) {
     const pa = va[i] || 0;
     const pb = vb[i] || 0;
@@ -56,68 +56,102 @@ function semverCompare(a, b) {
   return 0;
 }
 
+/* ---------- кешування ---------- */
+function cacheKey(group, date) {
+  return `${CACHE_KEY_PREFIX}:${group}:${date}`;
+}
 
+async function getCached(group, date) {
+  const key = cacheKey(group, date);
+  const stored = await chrome.storage.local.get(key);
+  if (!stored[key]) return null;
+  const { ts, html } = stored[key];
+  const now = Date.now();
+  const valid = now - ts < CACHE_TTL_MIN * 60 * 1000;
+  if (!valid) {
+    await chrome.storage.local.remove(key); // протух – видаляємо
+    return null;
+  }
+  return html;
+}
+
+async function setCached(group, date, html) {
+  const key = cacheKey(group, date);
+  await chrome.storage.local.set({ [key]: { ts: Date.now(), html } });
+}
+
+/* ---------- побудова HTML ---------- */
+async function buildTableHTML(group = 'all', date = 'today') {
+  const cached = await getCached(group, date);
+  if (cached) {
+    console.log('[BG] кеш ще дійсний, повертаємо з storage');
+    return cached;
+  }
+
+  const url = 'https://app.yasno.ua/api/blackout-service/public/shutdowns/regions/3/dsos/301/planned-outages';
+  try {
+    const data = await fetch(url).then(r => r.json());
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const iconUrl = chrome.runtime.getURL('icons/no-electricity.svg');
+
+    const minutesToTime = m => {
+      let h = Math.floor(m / 60);
+      if (h === 24) h = 0;
+      const min = m % 60;
+      return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+    };
+    const localizeType = t => (t === 'Definite' ? 'Світла немає' : 'Світло є');
+
+    const rows = [];
+    const groups = group === 'all' ? Object.keys(data) : [group];
+
+    for (const g of groups) {
+      const slots = data[g]?.[date]?.slots || [];
+      if (!slots.length) {
+        rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
+        continue;
+      }
+      for (const slot of slots) {
+        const start = minutesToTime(slot.start);
+        const end   = minutesToTime(slot.end);
+        const isNow = slot.start <= nowMin && nowMin < slot.end && date === 'today';
+        const isOutage = slot.type === 'Definite';
+        rows.push(`
+          <div class="_table_element${isOutage ? ' outage' : ''}">
+            <div>
+              <div class="_outage_time">
+                ${isNow ? '<div class="_table_current_selected"></div>' : ''}
+                ${start} - ${end}
+              </div>
+              <div class="_outage_type">${localizeType(slot.type)}</div>
+            </div>
+            ${isOutage ? `<img src="${iconUrl}" />` : ''}
+          </div>
+        `);
+      }
+    }
+
+    const html = rows.join('');
+    await setCached(group, date, html);
+    return html;
+  } catch (e) {
+    console.error('[BG] помилка побудови таблиці', e);
+    return null;
+  }
+}
+
+/* ---------- messaging ---------- */
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg === 'checkUpdate') {
-    console.log("[BG] catch update check")
     checkUpdate().catch(console.error);
     return true;
   }
 
   if (msg.getTable) {
     (async () => {
-      console.log('[BG] запит для групи', msg.group || 'all');
-      console.log('[BG] запит за датою', msg.date || 'today');
-      try {
-        const existing = await chrome.offscreen.hasDocument?.() ||
-        (await chrome.runtime.getContexts?.({ contextTypes: ['OFFSCREEN_DOCUMENT'] })).length > 0;
-        if (existing) {
-          console.log('[BG] закриваємо старий offscreen');
-          await chrome.offscreen.closeDocument();
-          await new Promise(r => setTimeout(r, 300));
-        }
-      } catch (e) {}
-
-      try {
-        await chrome.offscreen.createDocument({
-          url: 'render.html?r=' + Date.now(),
-          reasons: ['DOM_SCRAPING'],
-          justification: 'Забрати зрендерену таблицю'
-        });
-        
-        chrome.runtime.sendMessage({
-          group: msg.group || 'all',
-          date:  msg.date  || 'today'
-        });
-      } catch (e) {
-        console.error('[BG] не вдалося створити offscreen', e);
-        sendResponse(null);
-        return;
-      }
-
-      const answer = await new Promise(res => {
-        let timeoutId;
-        const onMsg = (m, s, sr) => {
-          if (Object.prototype.hasOwnProperty.call(m, 'tableHTML')) {
-            chrome.runtime.onMessage.removeListener(onMsg);
-            clearTimeout(timeoutId);
-            res(m.tableHTML);
-          }
-        };
-
-        chrome.runtime.onMessage.addListener(onMsg);
-        timeoutId = setTimeout(() => {
-          chrome.runtime.onMessage.removeListener(onMsg);
-          console.warn('[BG] таймаут 15 с – немає відповіді');
-          res(null);
-        }, 15000);
-      });
-
-      try {
-        console.log('[BG] закриваємо offscreen');
-        await chrome.offscreen.closeDocument();
-      } catch (e) {}
-      sendResponse(answer);
+      const html = await buildTableHTML(msg.group, msg.date);
+      sendResponse(html);
     })();
     return true;
   }
