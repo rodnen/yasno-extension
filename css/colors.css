@@ -5,6 +5,7 @@
   --text: #202124;
   --border: #C6D8E6;
   --outage: #dce3eb;
+  --active: #dce3eb;
 }
 
 /* 2. якщо система попросила темну */
@@ -14,7 +15,8 @@
     --bg-light: #2a2a2a;
     --text: #abacbb;
     --border: #3d3d3d;
-    --outage: #000000
+    --outage: #000000;
+    --active: #3f4346;
   }
 }
 
@@ -24,7 +26,8 @@
   --bg-light: #2a2a2a;
   --text: #abacbb;
   --border: #3d3d3d;
-  --outage: #000000
+  --outage: #000000;
+  --active: #3f4346;
 }
 
 /* 4. якщо користувач натиснув “Світла” */
@@ -34,4 +37,5 @@
   --text: #202124;
   --border: #C6D8E6;
   --outage: #dce3eb;
+  --active: #dce3eb;
 }

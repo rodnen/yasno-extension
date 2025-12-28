@@ -65,8 +65,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.getTable) {
     (async () => {
-     console.log('[BG] запит для групи', msg.group || 'all');
-
+      console.log('[BG] запит для групи', msg.group || 'all');
+      console.log('[BG] запит за датою', msg.date || 'today');
       try {
         const existing = await chrome.offscreen.hasDocument?.() ||
         (await chrome.runtime.getContexts?.({ contextTypes: ['OFFSCREEN_DOCUMENT'] })).length > 0;
@@ -78,14 +78,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } catch (e) {}
 
       try {
-        console.log('[BG] створюємо offscreen');
         await chrome.offscreen.createDocument({
           url: 'render.html?r=' + Date.now(),
           reasons: ['DOM_SCRAPING'],
           justification: 'Забрати зрендерену таблицю'
         });
-        console.log('[BG] offscreen створено');
-        chrome.runtime.sendMessage({ group: msg.group || 'all' });
+        
+        chrome.runtime.sendMessage({
+          group: msg.group || 'all',
+          date:  msg.date  || 'today'
+        });
       } catch (e) {
         console.error('[BG] не вдалося створити offscreen', e);
         sendResponse(null);

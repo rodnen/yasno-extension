@@ -1,22 +1,29 @@
 let targetGroup = 'all';
+let targetDate  = 'today';
+
 const now   = new Date();
 const nowMin = now.getHours() * 60 + now.getMinutes();
 const fileName = 'no-electricity.svg';
 const src = chrome.runtime.getURL(`icons/${fileName}`)
 const OUTAGE_ICON = `<img src="${src}"/>`;
 
+const plannedOutagesUrl  = 'https://app.yasno.ua/api/blackout-service/public/shutdowns/regions/3/dsos/301/planned-outages';
+
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.group) targetGroup = msg.group;
+  if (msg.date)  targetDate  = msg.date;
+  console.log("msg.date = " + msg.date)
+  console.log("group = " + targetGroup)
+  console.log("date = " + targetDate)
 });
 
 console.log('[OFF] render.js старт', Date.now());
 
 (async () => {
   try {
-    const url = 'https://app.yasno.ua/api/blackout-service/public/shutdowns/regions/3/dsos/301/planned-outages';
-    const data = await fetch(url).then(r => r.json());
     function minutesToTime(m) {
-      const h = Math.floor(m / 60);
+      let h = Math.floor(m / 60);
+      if(h == 24) h = 0;
       const min = m % 60;
       return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
     }
@@ -29,19 +36,21 @@ console.log('[OFF] render.js старт', Date.now());
       }
     }
 
+    const data = await fetch(plannedOutagesUrl).then(r => r.json());
+
     let rows = [];
     const groups = targetGroup === 'all' ? Object.keys(data) : [targetGroup];
 
     for (const group of groups) {
-      const todaySlots = data[group]?.today.slots || [];
-      if (!todaySlots.length) {
+      const slots = data[group]?.[targetDate].slots || [];
+      if (!slots.length) {
         rows.push(`<tr><td>${group}</td><td colspan="3">Немає відключень</td></tr>`);
         continue;
       }
-      for (const slot of todaySlots) {
+      for (const slot of slots) {
         const start = minutesToTime(slot.start);
         const end   = minutesToTime(slot.end);
-        const isNow = slot.start <= nowMin && nowMin < slot.end;
+        const isNow = slot.start <= nowMin && nowMin < slot.end && targetDate === 'today';
         const isOutage = slot.type == 'Definite'
         rows.push(`
         <div class="_table_element${isOutage ? ' outage' : ''}">

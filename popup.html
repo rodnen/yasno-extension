@@ -7,7 +7,6 @@
 </head>
 <body>
   <div id="controls">
-  <label>Черга:
     <select id="group-select">
       <option value="all">Усі черги</option>
       <option value="1.1">1.1</option>
@@ -23,14 +22,15 @@
       <option value="6.1">6.1</option>
       <option value="6.2">6.2</option>
     </select>
-  </label>
+    <div id="date-group" class="date-select">
+      <button class="date-btn active" data-type="today"></button>
+      <button class="date-btn"        data-type="tomorrow"></button>
+    </div>
 </div>
   <div id="box" class="loading"><div class="loader"></div><p>Йде завантаження…</p></div>
   <script src="popup.js"></script>
   
-  <div class="divider">
-
-  </div>
+  <div class="divider"></div>
 
   <div class="version">
     <span class="main-text">
