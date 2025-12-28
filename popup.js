@@ -1,7 +1,24 @@
 console.log('[POPUP] старт');
 
-const box   = document.getElementById('box');
-const select= document.getElementById('groupSelect');
+const box       = document.getElementById('box');
+const select    = document.getElementById('group-select');
+  
+document.addEventListener('DOMContentLoaded', () => {
+  const updateBtn = document.getElementById('check-updates');
+  const versionContainer = document.getElementById('ver');
+
+  if(versionContainer) {
+    versionContainer.textContent = chrome.runtime.getManifest().version;
+  }
+
+  if(updateBtn) {
+    updateBtn.addEventListener('click', () => {
+      console.log("[POPUP] clicked on btn")
+      chrome.runtime.sendMessage('checkUpdate');
+    });
+  }
+});
+
 
 chrome.storage.local.get(['lastGroup']).then(({ lastGroup }) => {
   if (lastGroup) select.value = lastGroup;
@@ -17,9 +34,10 @@ async function loadData() {
   const tableHTML = await chrome.runtime.sendMessage({ getTable: true, group });
 
   if (!tableHTML) {
-    box.innerHTML = '<p>Дані відсутні (див. консоль service-worker)</p>';
+    box.innerHTML = '<p class="message">Не вдалося завантажити дані 😢</p>';
     return;
   }
+  box.classList.remove('loading');
   box.innerHTML = `
     <style>
       table{border-collapse:collapse;width:100%;font-size:13px}

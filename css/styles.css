@@ -1,0 +1,138 @@
+ body {
+    width:fit-content;
+    font:14px/1.4 system-ui;
+    background: var(--bg);
+    width: 276px;
+    color: var(--text);
+  }
+
+  .loading {
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .message {
+    width: 100%;
+    padding: 8px;
+    text-align: center;
+    color: var(--text);
+  }
+
+  #group-select {
+    border: 1px solid var(--border);  
+    padding: 8px 12px;
+    background: transparent;
+    border-radius: 10px;  
+    outline: none;
+    color: var(--text);
+  }
+
+  #group-select option {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: 5px;
+  }
+
+._table_element, .version, #check-updates  {
+    border-radius: 20px;
+    color: var(--text);
+    border: 1px solid var(--border);  
+    padding: 8px 12px;
+    margin: 5px 0;
+}
+
+._table_element {
+    border-spacing: 0;  
+    width: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+._table_element ._outage_time {
+   display: flex;
+   align-items: center;
+   gap: 5px;
+}
+
+._table_element.outage {
+  background: var(--outage);
+}
+
+._table_current_selected {
+  border-radius: 100%;
+  width: 5px;
+  height: 5px;
+  background: red;
+}
+
+body::-webkit-scrollbar {
+  width: 5px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 20px; 
+}
+
+.author {
+    width: 100%;
+    text-align: center;
+    opacity: 0.7;
+    padding-top: 10px;
+}
+
+.author a{
+    color: var(--text);
+}
+
+.version, #check-updates {
+    background: var(--bg-light);
+}
+.version .main-text {
+    color: var(--text);
+}
+
+.version .secondary-text {
+    color: var(--text);
+    opacity: 0.7;
+    font-size: 12px;
+}
+
+#check-updates {
+    color: var(--text);
+    width: 100%;
+    cursor: pointer;
+}
+
+#check-updates:hover {
+    opacity: 0.7;
+}
+
+
+.divider {
+    width: calc(100% - 10px);
+    border-bottom: 2px solid var(--border);
+    margin: 20px 5px;
+}
+
+.loader {
+  width: 20px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: 
+    radial-gradient(farthest-side,#ffa516 94%,#0000) top/3px 3px no-repeat,
+    conic-gradient(#0000 30%,#ffa516);
+  -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 3px),#000 0);
+  animation: l13 1s infinite linear;
+}
+@keyframes l13{ 
+  100%{transform: rotate(1turn)}
+}

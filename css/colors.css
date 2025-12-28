@@ -1,0 +1,37 @@
+/* 1. системна тема (за замовчуванням) */
+:root {
+  --bg: #ffffff;
+  --bg-light: #ededed;
+  --text: #202124;
+  --border: #C6D8E6;
+  --outage: #dce3eb;
+}
+
+/* 2. якщо система попросила темну */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #202124;
+    --bg-light: #2a2a2a;
+    --text: #abacbb;
+    --border: #3d3d3d;
+    --outage: #000000
+  }
+}
+
+/* 3. якщо користувач у popup натиснув “Темна” */
+[data-theme="dark"] {
+  --bg: #202124;
+  --bg-light: #2a2a2a;
+  --text: #abacbb;
+  --border: #3d3d3d;
+  --outage: #000000
+}
+
+/* 4. якщо користувач натиснув “Світла” */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-light: #ededed;
+  --text: #202124;
+  --border: #C6D8E6;
+  --outage: #dce3eb;
+}

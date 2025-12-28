@@ -2,76 +2,13 @@
 <html lang="uk">
 <head>
   <meta charset="utf-8">
-  <style>
-  body {
-    width:fit-content;
-    font:14px/1.4 system-ui;
-    background: #fff;
-  }
-  #box {
-    padding:8px
-  }
-  #controls {
-    margin-left: 10px;
-  }
-
-  #groupSelect {
-    border: 1px solid #C6D8E6;  
-    padding: 8px 12px;
-    background: transparent;
-    border-radius: 10px;  
-    outline: none;
-  }
-
-  .rounded-table {
-  border-collapse: separate; 
-  border-spacing: 0;  
-  border: 1px solid #C6D8E6;  
-  border-radius: 10px;  
-  overflow: hidden;        
-}
-
-.rounded-table th,
-.rounded-table td {
-  border: 1px solid #C6D8E6;
-  padding: 8px 12px;
-  background: transparent;
-}
-
-.rounded-table th:first-child {
-  border-top-left-radius: 10px;
-}
-.rounded-table th:last-child {
-  border-top-right-radius: 10px;
-}
-.rounded-table tr:last-child td:first-child {
-  border-bottom-left-radius: 10px;
-}
-.rounded-table tr:last-child td:last-child {
-  border-bottom-right-radius: 10px;
-}
-
-body::-webkit-scrollbar {
-  width: 5px;
-}
-
-body::-webkit-scrollbar-track {
-  background: transparent
-}
-
-body::-webkit-scrollbar-thumb {
-  background-color: #C6D8E6;
-  border-radius: 20px; 
-}
-
-.now { background: #fffbcc; font-weight: 600; }
-
-  </style>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/colors.css">
 </head>
 <body>
   <div id="controls">
   <label>Черга:
-    <select id="groupSelect">
+    <select id="group-select">
       <option value="all">Усі черги</option>
       <option value="1.1">1.1</option>
       <option value="1.2">1.2</option>
@@ -88,7 +25,24 @@ body::-webkit-scrollbar-thumb {
     </select>
   </label>
 </div>
-  <div id="box">Йде завантаження…</div>
+  <div id="box" class="loading"><div class="loader"></div><p>Йде завантаження…</p></div>
   <script src="popup.js"></script>
+  
+  <div class="divider">
+
+  </div>
+
+  <div class="version">
+    <span class="main-text">
+      Yasno Exstension 
+    </span>
+    <br>
+    <span class="secondary-text">
+      Версія:
+      <span id="ver"></span>
+    </span>
+  </div>
+  <button id="check-updates">Перевірити оновлення</button>
+  <div class="author">created by <a href="https://github.com/rodnen" target="_blank">rodnen</a></div>
 </body>
 </html>
