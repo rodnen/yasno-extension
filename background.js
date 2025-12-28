@@ -12,6 +12,7 @@ async function checkUpdate() {
 
     switch (semverCompare(CURRENT_VERSION, latestVer)) {
       case -1:
+        console.log('[BG] version new');
         chrome.notifications.create('update-available', {
           type:    'basic',
           iconUrl: 'icons/icon128.png',

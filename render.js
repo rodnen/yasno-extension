@@ -12,12 +12,7 @@ const plannedOutagesUrl  = 'https://app.yasno.ua/api/blackout-service/public/shu
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.group) targetGroup = msg.group;
   if (msg.date)  targetDate  = msg.date;
-  console.log("msg.date = " + msg.date)
-  console.log("group = " + targetGroup)
-  console.log("date = " + targetDate)
 });
-
-console.log('[OFF] render.js старт', Date.now());
 
 (async () => {
   try {
@@ -40,11 +35,11 @@ console.log('[OFF] render.js старт', Date.now());
 
     let rows = [];
     const groups = targetGroup === 'all' ? Object.keys(data) : [targetGroup];
-
+    
     for (const group of groups) {
       const slots = data[group]?.[targetDate].slots || [];
       if (!slots.length) {
-        rows.push(`<tr><td>${group}</td><td colspan="3">Немає відключень</td></tr>`);
+        rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
         continue;
       }
       for (const slot of slots) {
