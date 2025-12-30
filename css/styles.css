@@ -1,13 +1,33 @@
- body {
-    width:fit-content;
-    font:14px/1.4 system-ui;
+ body { 
+    width: 280px;
+    height: 100%;
+    padding: 8px;
     background: var(--bg);
-    width: 276px;
     color: var(--text);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  #app {
+    font: 14px/1.4 system-ui;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    transform-origin: top;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 8px;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 8px;
   }
 
   .loading {
-    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -27,22 +47,99 @@
     justify-content: space-between;
   }
 
-  #group-select {
+  .select-label {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    pointer-events: none;
+    transition: 0.2s ease all;
+  }
+
+  .custom-select {
     border: 1px solid var(--border);  
-    padding: 8px 12px;
     background: transparent;
     border-radius: 20px;  
+    width: 54px;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     outline: none;
     color: var(--text);
+    cursor: pointer;
+    position: relative;
   }
 
-  #group-select option {
-    background-color: var(--bg);
+  .custom-select.has-value .select-label {
+    top: 0px;
+    left: 4px;
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--bg);
+    padding: 0 2px;
+  }
+
+  .select-trigger {
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .select-options {
+    position: absolute;
+    z-index: 11;
+    flex-direction: column;
+    gap: 10px;
+
+    top: 100%;
+    left: 0;
+    right: 0;
+    
+    max-height: 150px;
+    width: fit-content;
+    padding: 5px;  /* padding всередині, scrollbar не виступає */
+    overflow-y: auto; /* скролл тільки вертикально */
+    
+    border-radius: 6px;
+    background-color: var(--select-bg);
+    cursor: auto;
+    display: none;
+    box-shadow: var(--select-shadow) 0px 5px 10px
+  }
+
+.custom-select.open .select-options {
+  display: flex;
+}
+
+.select-options::-webkit-scrollbar {
+  width: 4px;
+}
+
+.select-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.select-options::-webkit-scrollbar-thumb {
+  background: var(--option-scrollbar-thumb);
+  border-radius: 2px;
+}
+
+  .custom-select .option {
+    background-color: var(--select-bg);
     color: var(--text);
-    padding: 5px;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 15px;
   }
 
-._table_element, .version, #check-updates  {
+  .option:hover {
+    background: var(--option-hover);
+  }
+
+
+._table_element, .version, #check-updates, ._table_is_outdated  {
     border-radius: 20px;
     color: var(--text);
     border: 1px solid var(--border);  
@@ -52,7 +149,7 @@
 
 ._table_element {
     border-spacing: 0;  
-    width: 250px;
+    width: calc(100% - 26px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -75,15 +172,23 @@
   background: red;
 }
 
-body::-webkit-scrollbar {
-  width: 5px;
+#box {
+  max-height: 340px;
+  overflow-y: auto; 
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 8px;
 }
 
-body::-webkit-scrollbar-track {
+#box::-webkit-scrollbar {
+  width: 0px;
+}
+
+#box::-webkit-scrollbar-track {
   background: transparent
 }
 
-body::-webkit-scrollbar-thumb {
+#box::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: 20px; 
 }
@@ -116,12 +221,19 @@ body::-webkit-scrollbar-thumb {
     color: var(--text);
     width: 100%;
     cursor: pointer;
+    transition: 0.35s ease;
 }
 
-#check-updates:hover {
+.date-btn:not(.active):hover, #reload:hover {
     opacity: 0.7;
 }
 
+#check-updates:hover{
+  background: var(--accent);
+  color: var(--text-accent);
+  border: 1px solid var(--text-accent);
+  opacity: 0.8;
+}
 
 .divider {
   width: calc(100% - 10px);
@@ -130,34 +242,54 @@ body::-webkit-scrollbar-thumb {
 }
 
 .date-select {
+  position: relative;
   height: 24.8px;
   display: flex;
   align-items: center;
   border-radius: 20px;
   color: var(--text);
+  background: var(--bg);
   border: 1px solid var(--border);  
   padding: 4px 4px;
   margin: 5px 0;
-
 }
 
-.date-select button {
+.date-select .date-btn {
+  position: relative;
+  z-index: 1;
+
+  flex: 1;
   background: transparent;
+
   color: var(--text);
   cursor: pointer;
+
   border-radius: 15px;
   border: none;
   width: 100%;
   height: 100%;
+  transition: 0.35s ease;
 }
 
-.date-select button.active {
-  background: var(--active);
-  color: var(--text);
+.date-select .date-btn.active {
+  color: var(--text-accent);
   cursor: pointer;
   border: none;
   width: 100%;
   height: 100%;
+}
+
+.date-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 0;
+
+  border-radius: 15px;
+  background: var(--accent);
+
+  transform: translateX(0);
+  transition: transform 0.25s ease, width 0.25s ease;
+  will-change: transform, width;
 }
 
 .waiting-for-updates {
@@ -170,18 +302,47 @@ body::-webkit-scrollbar-thumb {
   font-size: 42px;
 }
 
+#reload {
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 100%;
+  border: 1px solid var(--border);  
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+#reload svg {
+  height: 20px;
+  width: 20px;
+  stroke: var(--text);
+}
 
 .loader {
   width: 20px;
   aspect-ratio: 1;
   border-radius: 50%;
   background: 
-    radial-gradient(farthest-side,#ffa516 94%,#0000) top/3px 3px no-repeat,
-    conic-gradient(#0000 30%,#ffa516);
-  -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 3px),#000 0);
+    radial-gradient(farthest-side, var(--accent) 94%, #0000) top/3px 3px no-repeat,
+    conic-gradient(from 0deg, #0000 30deg, var(--accent) 30deg 360deg);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 3px), #000 0);
   animation: l13 1s infinite linear;
 }
-@keyframes l13{ 
-  100%{transform: rotate(1turn)}
+
+.spin {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  animation: l14 1s linear infinite;
+  will-change: transform;
+}
+
+@keyframes l13 {
+  100% { transform: rotate(1turn); }
+}
+
+@keyframes l14 {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }

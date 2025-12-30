@@ -5,7 +5,12 @@
   --text: #202124;
   --border: #C6D8E6;
   --outage: #dce3eb;
-  --active: #dce3eb;
+  --accent: #ff9900;
+  --text-accent: #ffffff;
+  --select-bg: #ffffff;
+  --select-shadow: #a1a1a1;
+  --option-hover: #dce3eb;
+  --option-scrollbar-thumb: #dddddd;
 }
 
 /* 2. якщо система попросила темну */
@@ -16,7 +21,12 @@
     --text: #abacbb;
     --border: #3d3d3d;
     --outage: #000000;
-    --active: #3f4346;
+    --accent: #ce7b00;
+    --text-accent: #fafafa;
+    --select-bg: #353535;
+    --select-shadow: #141414;
+    --option-hover: #000000;
+    --option-scrollbar-thumb: #7e7e7e;
   }
 }
 
@@ -27,7 +37,12 @@
   --text: #abacbb;
   --border: #3d3d3d;
   --outage: #000000;
-  --active: #3f4346;
+  --accent: #ce7b00;
+  --text-accent: #fafafa;
+  --select-bg: #353535;
+  --select-shadow: #ffffff;
+  --option-hover: #141414;
+  --option-scrollbar-thumb: #7e7e7e;
 }
 
 /* 4. якщо користувач натиснув “Світла” */
@@ -37,5 +52,10 @@
   --text: #202124;
   --border: #C6D8E6;
   --outage: #dce3eb;
-  --active: #dce3eb;
+  --accent: #ff9900;
+  --text-accent: #ffffff;
+  --select-bg: #ffffff;
+  --select-shadow: #a1a1a1;
+  --option-hover: #dce3eb;
+  --option-scrollbar-thumb: #dddddd;
 }

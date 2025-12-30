@@ -2,8 +2,7 @@
 const OWNER = 'rodnen';
 const REPO  = 'yasno-extension';
 const CACHE_KEY_PREFIX = 'cache:yasno:table';
-const CACHE_TTL_MIN    = 15;                // хвилини
-
+const CACHE_TTL_MIN    = 20;                // хвилини
 const CURRENT_VERSION = chrome.runtime.getManifest().version;
 
 /* ---------- оновлення розширення ---------- */
@@ -61,8 +60,8 @@ function cacheKey(group, date) {
   return `${CACHE_KEY_PREFIX}:${group}:${date}`;
 }
 
-async function getCached(group, date) {
-  const key = cacheKey(group, date);
+async function getCached(group, dayType) {
+  const key = cacheKey(group, dayType);
   const stored = await chrome.storage.local.get(key);
   if (!stored[key]) return null;
   const { ts, html } = stored[key];
@@ -81,8 +80,8 @@ async function setCached(group, date, html) {
 }
 
 /* ---------- побудова HTML ---------- */
-async function buildTableHTML(group = 'all', date = 'today') {
-  const cached = await getCached(group, date);
+async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDate(), dayType = 'today') {
+  const cached = await getCached(group, dayType);
   if (cached) {
     console.log('[BG] кеш ще дійсний, повертаємо з storage');
     return cached;
@@ -106,34 +105,65 @@ async function buildTableHTML(group = 'all', date = 'today') {
     const rows = [];
     const groups = group === 'all' ? Object.keys(data) : [group];
 
-    for (const g of groups) {
-      const slots = data[g]?.[date]?.slots || [];
-      if (!slots.length) {
-        rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
-        continue;
-      }
-      for (const slot of slots) {
-        const start = minutesToTime(slot.start);
-        const end   = minutesToTime(slot.end);
-        const isNow = slot.start <= nowMin && nowMin < slot.end && date === 'today';
-        const isOutage = slot.type === 'Definite';
-        rows.push(`
-          <div class="_table_element${isOutage ? ' outage' : ''}">
-            <div>
-              <div class="_outage_time">
-                ${isNow ? '<div class="_table_current_selected"></div>' : ''}
-                ${start} - ${end}
-              </div>
-              <div class="_outage_type">${localizeType(slot.type)}</div>
-            </div>
-            ${isOutage ? `<img src="${iconUrl}" />` : ''}
-          </div>
-        `);
+    let hasAnySlots = false
+    let effectiveDayType = dayType;
+
+    if (effectiveDayType === 'today') {
+      const todayIso = data[groups[0]]?.today?.date;
+      if (todayIso) {
+        const scheduleDayNumber = new Date(todayIso).getDate();
+        if (scheduleDayNumber !== currentDayNumber) {
+          effectiveDayType = 'tomorrow';
+        }
       }
     }
 
+    for (const g of groups) {
+      const schedules = data[g]
+      const slots = schedules?.[dayType]?.slots || [];
+      const iso = schedules?.[dayType]?.date || [];
+      const scheduleDayNumber = new Date(iso).getDate();
+
+      if (effectiveDayType === 'tomorrow' && scheduleDayNumber !== currentDayNumber) {
+        continue;
+      }
+
+      const isOutdated = schedules?.[dayType]?.status === "WaitingForSchedule"
+      if (slots.length) hasAnySlots = true;
+      
+      if(isOutdated && hasAnySlots) {
+        rows.push(`<div class="_table_is_outdated">⏳ Очікуємо на більш актуальні дані</div>`);
+      }
+
+      if (hasAnySlots) {
+        for (const slot of slots) {
+          const start = minutesToTime(slot.start);
+          const end   = minutesToTime(slot.end);
+          const isNow = slot.start <= nowMin && nowMin < slot.end && dayType === 'today';
+          const isOutage = slot.type === 'Definite';
+          rows.push(`
+            <div class="_table_element${isOutage ? ' outage' : ''}">
+              <div>
+                <div class="_outage_time">
+                  ${isNow ? '<div class="_table_current_selected"></div>' : ''}
+                  ${start} - ${end}
+                </div>
+                <div class="_outage_type">${localizeType(slot.type)}</div>
+              </div>
+              ${isOutage ? `<img src="${iconUrl}" />` : ''}
+            </div>
+          `);
+        }
+      }
+    }
+
+    if (!hasAnySlots) {
+      console.log("slots empty")
+      rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
+    }
+
     const html = rows.join('');
-    await setCached(group, date, html);
+    await setCached(group, dayType, html);
     return html;
   } catch (e) {
     console.error('[BG] помилка побудови таблиці', e);
@@ -150,9 +180,33 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.getTable) {
     (async () => {
-      const html = await buildTableHTML(msg.group, msg.date);
+      const html = await buildTableHTML(msg.group, msg.currentDayNumber, msg.dayType);
       sendResponse(html);
     })();
     return true;
   }
+
+  if (msg === 'clearCache') {
+    clearAllCache().then(() => sendResponse({ ok: true }));
+    return true;
+  }
+
 });
+
+async function clearAllCache() {
+  const all = await chrome.storage.local.get();
+  const toRemove = [];
+
+  for (const key in all) {
+    if (key.startsWith(CACHE_KEY_PREFIX)) {
+      toRemove.push(key);
+    }
+  }
+
+  if (toRemove.length) {
+    await chrome.storage.local.remove(toRemove);
+    console.log('[BG] кеш очищено, видалено ключів:', toRemove.length);
+  } else {
+    console.log('[BG] кеш порожній');
+  }
+}

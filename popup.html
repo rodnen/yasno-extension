@@ -6,43 +6,69 @@
   <link rel="stylesheet" href="css/colors.css">
 </head>
 <body>
-  <div id="controls">
-    <select id="group-select">
-      <option value="all">Усі черги</option>
-      <option value="1.1">1.1</option>
-      <option value="1.2">1.2</option>
-      <option value="2.1">2.1</option>
-      <option value="2.2">2.2</option>
-      <option value="3.1">3.1</option>
-      <option value="3.2">3.2</option>
-      <option value="4.1">4.1</option>
-      <option value="4.2">4.2</option>
-      <option value="5.1">5.1</option>
-      <option value="5.2">5.2</option>
-      <option value="6.1">6.1</option>
-      <option value="6.2">6.2</option>
-    </select>
-    <div id="date-group" class="date-select">
-      <button class="date-btn active" data-type="today"></button>
-      <button class="date-btn"        data-type="tomorrow"></button>
-    </div>
-</div>
-  <div id="box" class="loading"><div class="loader"></div><p>Йде завантаження…</p></div>
-  <script src="popup.js"></script>
-  
-  <div class="divider"></div>
+  <div id="app">
+    <header>
+      <div id="controls">
+        <div class="custom-select" data-value="all">
+          <label class="select-label">Черга</label>
+          <div class="select-trigger">Черга</div>
+          <div class="select-options">
+            <div class="option" data-value="1.1">1.1</div>
+            <div class="option" data-value="1.2">1.2</div>
+            <div class="option" data-value="2.1">2.1</div>
+            <div class="option" data-value="2.2">2.2</div>
+            <div class="option" data-value="3.1">3.1</div>
+            <div class="option" data-value="3.2">3.2</div>
+            <div class="option" data-value="4.1">4.1</div>
+            <div class="option" data-value="4.2">4.2</div>
+            <div class="option" data-value="5.1">5.1</div>
+            <div class="option" data-value="5.2">5.2</div>
+            <div class="option" data-value="6.1">6.1</div>
+            <div class="option" data-value="6.2">6.2</div>
+          </div>
+        </div>
+        
+        <div id="date-group" class="date-select">
+          <div class="date-indicator"></div>
 
-  <div class="version">
-    <span class="main-text">
-      Yasno Exstension 
-    </span>
-    <br>
-    <span class="secondary-text">
-      Версія:
-      <span id="ver"></span>
-    </span>
+          <button class="date-btn active" data-type="today"></button>
+          <button class="date-btn"        data-type="tomorrow"></button>
+        </div>
+
+        <button id="reload">
+          <svg xmlns="http://www.w3.org/2000/svg" 
+            width="800px" 
+            height="800px" 
+            viewBox="0 0 64 64" 
+            stroke-width="3" 
+            stroke="#000000" 
+            fill="none">
+            <path d="M53.72,36.61A21.91,21.91,0,1,1,50.37,20.1"/>
+            <polyline points="51.72 7.85 50.85 20.78 37.92 19.9"/>
+            <path d="M53.72,36.61A21.91,21.91,0,1,1,50.37,20.1"/>
+            <polyline points="51.72 7.85 50.85 20.78 37.92 19.9"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="box" class="loading"><div class="loader"></div><p>Йде завантаження…</p></div>
+    <script src="popup.js"></script>
+  
+    <footer>
+      <div class="version">
+        <span class="main-text">
+          Yasno Exstension 
+        </span>
+        <br>
+        <span class="secondary-text">
+          Версія:
+          <span id="ver"></span>
+        </span>
+      </div>
+      <button id="check-updates">Перевірити оновлення</button>
+      <div class="author">created by <a href="https://github.com/rodnen" target="_blank">rodnen</a></div>
+    </footer>
   </div>
-  <button id="check-updates">Перевірити оновлення</button>
-  <div class="author">created by <a href="https://github.com/rodnen" target="_blank">rodnen</a></div>
 </body>
 </html>

@@ -1,10 +1,12 @@
 const box        = document.getElementById('box');
-const select     = document.getElementById('group-select');
+const customSelect = document.querySelector('.custom-select');
+const INDICATOR_PADDING = 5;
 
 document.addEventListener('DOMContentLoaded', () => {
   const updateBtn = document.getElementById('check-updates');
+  const reloadBtn = document.getElementById('reload');
   const versionContainer = document.getElementById('ver');
-
+  
   const today    = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
@@ -24,6 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
     versionContainer.textContent = chrome.runtime.getManifest().version;
   }
 
+  reloadBtn.addEventListener('click', async() => {
+    reloadBtn.disabled = true;
+    reloadBtn.classList.add("spin")
+    try {
+      await sendMessagePromise('clearCache');
+      await loadData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      reloadBtn.disabled = false;
+      reloadBtn.classList.remove("spin")
+    }
+  });
+
   group.addEventListener('click', e => {
     const btn = e.target.closest('.date-btn');
     if (!btn) return;
@@ -32,39 +48,114 @@ document.addEventListener('DOMContentLoaded', () => {
     group.querySelector('.date-btn.active')?.classList.remove('active');
     btn.classList.add('active');
 
+    updateDateIndicator()
     loadData();
   });
 
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      updateDateIndicator();
+    });
+  });
+  initCustomSelect();
 });
 
+function sendMessagePromise(message) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(message, resolve);
+  });
+}
 
-chrome.storage.local.get(['lastGroup']).then(({ lastGroup }) => {
-  if (lastGroup) select.value = lastGroup;
-  loadData();
-});
+
+function updateDateIndicator() {
+  const group = document.getElementById('date-group');
+  const indicator = group.querySelector('.date-indicator');
+  const activeBtn = group.querySelector('.date-btn.active');
+
+  if (!activeBtn) return;
+
+  const btnRect = activeBtn.getBoundingClientRect();
+  const groupRect = group.getBoundingClientRect();
+
+  const left  = btnRect.left - groupRect.left - INDICATOR_PADDING;
+  const width = btnRect.width;
+  const height = btnRect.height;
+
+
+  indicator.style.width = width + 'px';
+  indicator.style.height = height + 'px';
+  indicator.style.transform = `translateX(${left}px)`;
+}
+
+function initCustomSelect() {
+  if (!customSelect) return;
+
+  const trigger = customSelect.querySelector('.select-trigger');
+  const options = customSelect.querySelectorAll('.option');
+
+  customSelect.addEventListener('click', e => {
+    e.stopPropagation();
+    customSelect.classList.toggle('open');
+  });
+
+  document.addEventListener('click', () => {
+    customSelect.classList.remove('open');
+  });
+
+  chrome.storage.local.get(['lastGroup']).then(({ lastGroup }) => {
+    if (lastGroup) {
+      setSelectValue(customSelect, lastGroup);
+      if(lastGroup !== "all") customSelect.classList.add('has-value');   
+    }
+    loadData();
+  });
+
+  options.forEach(option => {
+    option.addEventListener('click', () => {
+      const value = option.dataset.value;
+      const text = option.textContent;
+
+      customSelect.dataset.value = value;
+      customSelect.classList.add('has-value');   
+      trigger.textContent = text;
+
+      chrome.storage.local.set({ lastGroup: value });
+      loadData();
+    });
+  });
+}
+
+function setSelectValue(select, value) {
+  const option = select.querySelector(
+    `.option[data-value="${value}"]`
+  );
+  if (!option) return;
+
+  select.dataset.value = value;
+  select.querySelector('.select-trigger').textContent =
+    option.textContent;
+}
+
 
 async function loadData() {
-  const group = select.value;
+  const group = customSelect?.dataset.value;
+  if (!group) return;
+
   const activeBtn = document.querySelector('#date-group .date-btn.active');
-  const date = activeBtn ? activeBtn.dataset.type : 'today'; 
+  const currentDayNumber = new Date().getDate()
+  const dayType = activeBtn ? activeBtn.dataset.type : 'today'; 
 
   chrome.storage.local.set({ lastGroup: group });
 
-  console.log('[POPUP] запитуємо для групи', group, 'дата', date);
-  const tableHTML = await chrome.runtime.sendMessage({ getTable: true, group, date });
+  console.log('[POPUP] запитуємо для групи - ', group, ' число - ', currentDayNumber, ' тип дня - ', dayType);
+  const tableHTML = await chrome.runtime.sendMessage({ getTable: true, group, currentDayNumber, dayType });
 
   if (!tableHTML) {
     box.innerHTML = '<p class="message">Не вдалося завантажити дані 😢</p>';
     return;
   }
   box.classList.remove('loading');
-  box.innerHTML = `
-    <style>
-      table{border-collapse:collapse;width:100%;font-size:13px}
-      th,td{border:1px solid #ccc;padding:6px;text-align:center}
-      th{background:#f2f2f2}
-    </style>
-    ${tableHTML}`;
+  box.innerHTML = tableHTML;
 }
 
 function formatDate(date){
@@ -74,5 +165,3 @@ function formatDate(date){
 
     return day + ' ' + months[month] + '.';
 }
-
-select.addEventListener('change', loadData);
