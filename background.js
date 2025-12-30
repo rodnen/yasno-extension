@@ -124,7 +124,7 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
       const iso = schedules?.[dayType]?.date || [];
       const scheduleDayNumber = new Date(iso).getDate();
 
-      if (effectiveDayType === 'tomorrow' && scheduleDayNumber !== currentDayNumber) {
+      if (effectiveDayType === 'tomorrow' && scheduleDayNumber === currentDayNumber) {
         continue;
       }
 
