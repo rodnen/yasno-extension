@@ -14,31 +14,28 @@ async function checkUpdate() {
     const latestVer = latest.tag_name;
     const url       = latest.html_url;
 
-    switch (semverCompare(CURRENT_VERSION, latestVer)) {
-      case -1:
-        console.log('[BG] version new');
-        chrome.notifications.create('update-available', {
-          type:    'basic',
-          iconUrl: 'icons/icon128.png',
-          title:   'New version available',
-          message: `${REPO} ${latestVer} is out. Click to download.`
-        });
-        chrome.notifications.onClicked.addListener(id => {
-          if (id === 'update-available') {
-            chrome.tabs.create({ url });
-            chrome.notifications.clear(id);
-          }
-        });
-        break;
-      case 0:
-        console.log('[BG] versions equal');
-        break;
-      case 1:
-        console.log('[BG] local is NEWER');
-        break;
+    const cmp = semverCompare(CURRENT_VERSION, latestVer) 
+
+    if(cmp === -1){
+      console.log('[BG] version new');
+      chrome.notifications.create('update-available', {
+        type:    'basic',
+        iconUrl: 'icons/icon128.png',
+        title:   'New version available',
+        message: `${REPO} ${latestVer} is out. Click to download.`
+      });
+      chrome.notifications.onClicked.addListener(id => {
+        if (id === 'update-available') {
+          chrome.tabs.create({ url });
+          chrome.notifications.clear(id);
+        }
+      });
     }
+
+    return {cmp, latestVer}
   } catch (e) {
     console.warn('[Update check]', e);
+    return null
   }
 }
 
@@ -174,7 +171,7 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
 /* ---------- messaging ---------- */
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg === 'checkUpdate') {
-    checkUpdate().catch(console.error);
+    checkUpdate().then(result => sendResponse({ result }));
     return true;
   }
 

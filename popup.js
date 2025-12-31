@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const updateBtn = document.getElementById('check-updates');
   const reloadBtn = document.getElementById('reload');
   const versionContainer = document.getElementById('ver');
-  
+  const dialog = document.getElementById('dialog');
+
   const today    = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
@@ -17,8 +18,32 @@ document.addEventListener('DOMContentLoaded', () => {
   group.querySelector('[data-type="tomorrow"]').textContent = formatDate(tomorrow);
 
   if(updateBtn) {
-    updateBtn.addEventListener('click', () => {
-      chrome.runtime.sendMessage('checkUpdate');
+    updateBtn.addEventListener('click', async () => {
+      const content = dialog.querySelector(".content")
+      updateBtn.disabled = true;
+      dialog.classList.add('show')
+      
+      const response = await sendMessagePromise('checkUpdate');
+      const result = response.result
+      
+      updateBtn.disabled = false;      
+      let msg = "Помилка: не вдалося знайти оновлення"
+      switch (result.cmp) {
+        case 1: { 
+          msg  = "У вас встановлена новіша версія розширення";
+          break;
+        }
+        case 0: {
+          msg  = "У вас встановлена остання версія розширення";
+          break;
+        }
+        case -1: {
+          msg = "Знайдено оновлення розширення Версія: " + result.latestVer;
+          break;
+        }
+      }
+
+      content.innerHTML = `<span>${msg}</span>`;
     });
   }
 
@@ -26,13 +51,21 @@ document.addEventListener('DOMContentLoaded', () => {
     versionContainer.textContent = chrome.runtime.getManifest().version;
   }
 
+  dialog.addEventListener('click', () => {
+    dialog.classList.remove('show')
+    const content = dialog.querySelector(".content")
+    content.innerHTML = `<div class="loader"></div>`
+  });
+
   reloadBtn.addEventListener('click', async() => {
     reloadBtn.disabled = true;
     reloadBtn.classList.add("spin")
     try {
       await sendMessagePromise('clearCache');
       await loadData();
-    } catch (e) {
+    } catch (e
+
+    ) {
       console.error(e);
     } finally {
       reloadBtn.disabled = false;
