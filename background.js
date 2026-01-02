@@ -117,15 +117,15 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
 
     for (const g of groups) {
       const schedules = data[g]
-      const slots = schedules?.[dayType]?.slots || [];
-      const iso = schedules?.[dayType]?.date || [];
+      const slots = schedules?.[effectiveDayType]?.slots || [];
+      const iso = schedules?.[effectiveDayType]?.date || [];
       const scheduleDayNumber = new Date(iso).getDate();
 
-      if (effectiveDayType === 'tomorrow' && scheduleDayNumber === currentDayNumber) {
+      if (effectiveDayType === 'tomorrow' && scheduleDayNumber === currentDayNumber && effectiveDayType === dayType) {
         continue;
       }
 
-      const isOutdated = schedules?.[dayType]?.status === "WaitingForSchedule"
+      const isOutdated = schedules?.[effectiveDayType]?.status === "WaitingForSchedule"
       if (slots.length) hasAnySlots = true;
       
       if(isOutdated && hasAnySlots) {
@@ -136,7 +136,7 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
         for (const slot of slots) {
           const start = minutesToTime(slot.start);
           const end   = minutesToTime(slot.end);
-          const isNow = slot.start <= nowMin && nowMin < slot.end && dayType === 'today';
+          const isNow = slot.start <= nowMin && nowMin < slot.end && effectiveDayType === 'today';
           const isOutage = slot.type === 'Definite';
           rows.push(`
             <div class="_table_element${isOutage ? ' outage' : ''}">

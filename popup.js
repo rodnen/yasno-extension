@@ -7,15 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const reloadBtn = document.getElementById('reload');
   const versionContainer = document.getElementById('ver');
   const dialog = document.getElementById('dialog');
-
-  const today    = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-
   const group = document.getElementById('date-group');
-
-  group.querySelector('[data-type="today"]').textContent    = formatDate(today);
-  group.querySelector('[data-type="tomorrow"]').textContent = formatDate(tomorrow);
 
   if(updateBtn) {
     updateBtn.addEventListener('click', async () => {
@@ -70,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       reloadBtn.disabled = false;
       reloadBtn.classList.remove("spin")
+      updateDateNumber()
     }
   });
 
@@ -90,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
       updateDateIndicator();
     });
   });
+
+  updateDateNumber();
   initCustomSelect();
 });
 
@@ -99,6 +94,16 @@ function sendMessagePromise(message) {
   });
 }
 
+function updateDateNumber() {
+  const today    = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const group = document.getElementById('date-group');
+
+  group.querySelector('[data-type="today"]').textContent    = formatDate(today);
+  group.querySelector('[data-type="tomorrow"]').textContent = formatDate(tomorrow);
+}
 
 function updateDateIndicator() {
   const group = document.getElementById('date-group');
