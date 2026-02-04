@@ -103,7 +103,10 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
     const groups = group === 'all' ? Object.keys(data) : [group];
 
     let hasAnySlots = false
+    let isEmergency = false
+    let isOutdated = false
     let effectiveDayType = dayType;
+    let slotIndex = 0;
 
     if (effectiveDayType === 'today') {
       const todayIso = data[groups[0]]?.today?.date;
@@ -125,7 +128,9 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
         continue;
       }
 
-      const isOutdated = schedules?.[effectiveDayType]?.status === "WaitingForSchedule"
+      isOutdated = schedules?.[effectiveDayType]?.status === "WaitingForSchedule"
+      isEmergency = schedules?.[effectiveDayType]?.status === "EmergencyShutdowns"
+
       if (slots.length) hasAnySlots = true;
       
       if(isOutdated && hasAnySlots) {
@@ -142,7 +147,7 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
             <div class="_table_element${isOutage ? ' outage' : ''}">
               <div>
                 <div class="_outage_time">
-                  ${isNow ? '<div class="_table_current_selected"></div>' : ''}
+                  ${isNow ? `<div class="_table_current_selected" data-index="${slotIndex}"></div>` : ''}
                   ${start} - ${end}
                 </div>
                 <div class="_outage_type">${localizeType(slot.type)}</div>
@@ -150,11 +155,17 @@ async function buildTableHTML(group = 'all', currentDayNumber = new Date().getDa
               ${isOutage ? `<img src="${iconUrl}" />` : ''}
             </div>
           `);
+
+          slotIndex++;
         }
       }
     }
 
-    if (!hasAnySlots) {
+    if(isEmergency) {
+      console.log("emergency")
+      rows.push(`<div class="emergency-shutdown"><span class="police-car-emoji">🚨</span><span>Екстрені відключення, графіки не діють</span></div>`);
+    }
+    else if (!hasAnySlots) {
       console.log("slots empty")
       rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
     }

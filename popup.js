@@ -99,10 +99,22 @@ function updateDateNumber() {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
+  const todayDayNumber    = today.getDate();
+  const tomorrowDayNumbet = tomorrow.getDate();
+
   const group = document.getElementById('date-group');
 
   group.querySelector('[data-type="today"]').textContent    = formatDate(today);
   group.querySelector('[data-type="tomorrow"]').textContent = formatDate(tomorrow);
+
+  if(todayDayNumber === 6 && tomorrowDayNumbet === 7) {
+    const child = document.createElement('img');
+    child.src = `https://cdn.7tv.app/emote/01K91ZKMKBW0EA884967R3MHCM/1x.gif`; 
+    child.alt = "67"
+    child.className = "easter";
+    
+    group.appendChild(child)
+  }
 }
 
 function updateDateIndicator() {
@@ -186,7 +198,12 @@ async function loadData() {
   chrome.storage.local.set({ lastGroup: group });
 
   console.log('[POPUP] запитуємо для групи - ', group, ' число - ', currentDayNumber, ' тип дня - ', dayType);
-  const tableHTML = await chrome.runtime.sendMessage({ getTable: true, group, currentDayNumber, dayType });
+  const tableHTML = await chrome.runtime.sendMessage({ 
+    getTable: true, 
+    group, 
+    currentDayNumber, 
+    dayType 
+  });
 
   if (!tableHTML) {
     box.innerHTML = '<p class="message">Не вдалося завантажити дані 😢</p>';
@@ -194,6 +211,18 @@ async function loadData() {
   }
   box.classList.remove('loading');
   box.innerHTML = tableHTML;
+
+  const selectedElement = box.querySelector('._table_current_selected');
+  if (selectedElement) {
+    selectedElement.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest' 
+    });
+  }
+  else {
+    box.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 function formatDate(date){
