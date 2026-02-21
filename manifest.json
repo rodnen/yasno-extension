@@ -1,38 +1,40 @@
 {
   "manifest_version": 3,
   "name": "Графік відключень",
-  "description": "Перевірка відключень світла за чергою (static.yasno.ua/dnipro/outages)",
-  "version": "1.1.8",
-
+  "description": "Перевірка відключень світла за чергою",
+  "version": "1.1.9",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-
   "action": {
     "default_popup": "popup.html"
   },
-  
-  "background": { 
+  "background": {
     "service_worker": "background.js"
   },
-
   "permissions": [
     "storage",
-    "notifications"
+    "notifications",
+    "activeTab",
+    "cookies"
   ],
-
   "host_permissions": [
     "https://static.yasno.ua/*",
-    "https://app.yasno.ua/*"
+    "https://app.yasno.ua/*",
+    "https://www.dtek-dnem.com.ua/*",
+    "https://admin.dtek-dnem.com.ua/*"
   ],
-
- "web_accessible_resources": [
-  {
-    "resources": [ "icons/*" ],
-    "matches": [ "<all_urls>" ]
-  }
-]
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

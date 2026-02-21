@@ -1,15 +1,17 @@
 <!doctype html>
 <html lang="uk">
+
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/colors.css">
 </head>
+
 <body>
   <div id="app">
     <header>
       <div id="controls">
-        <div class="custom-select" data-value="all">
+        <div class="custom-select queue-select" data-value="all">
           <label class="select-label">Черга</label>
           <div class="select-trigger">Черга</div>
           <div class="select-options">
@@ -27,57 +29,80 @@
             <div class="option" data-value="6.2">6.2</div>
           </div>
         </div>
-        
+
+        <div class="custom-select osr-select" data-value="301">
+          <label class="select-label">ОСР</label>
+          <div class="select-trigger">ОСР</div>
+          <div class="select-options">
+            <div class="option" data-value="301">ДнЕМ</div>
+            <div class="option" data-value="303">ЦЕК</div>
+          </div>
+        </div>
+
         <div id="date-group" class="date-select">
           <div class="date-indicator"></div>
 
           <button class="date-btn active" data-type="today"></button>
-          <button class="date-btn"        data-type="tomorrow"></button>
+          <button class="date-btn" data-type="tomorrow"></button>
         </div>
 
-        <button id="reload">
-          <svg xmlns="http://www.w3.org/2000/svg" 
-            width="800px" 
-            height="800px" 
-            viewBox="0 0 64 64" 
-            stroke-width="3" 
-            stroke="#000000" 
-            fill="none">
-            <path d="M53.72,36.61A21.91,21.91,0,1,1,50.37,20.1"/>
-            <polyline points="51.72 7.85 50.85 20.78 37.92 19.9"/>
-            <path d="M53.72,36.61A21.91,21.91,0,1,1,50.37,20.1"/>
-            <polyline points="51.72 7.85 50.85 20.78 37.92 19.9"/>
-          </svg>
-        </button>
+        <div id="dots-btn">
+          <button class="menu combine">
+            <span class="menu__inner"></span>
+          </button>
+
+          <!-- Popup Menu -->
+          <div id="popup-menu" class="popup-menu">
+            <button class="menu-item close-at-click" data-action="refresh">
+              <span class="menu-icon">🔄️</span>
+              <span>Оновити</span>
+            </button>
+
+            <button class="menu-item" data-action="mode">
+              <span class="menu-icon">💡</span>
+              <span>DTEK режим</span>
+              <label class="switch" for="checkbox">
+                <input type="checkbox" id="checkbox" />
+                <div class="slider round"></div>
+              </label>
+            </button>
+
+            <div class="menu-separator"></div>
+
+            <button class="menu-item close-at-click" data-action="about">
+              <span class="menu-icon">ℹ️</span>
+              <span>Про розширення</span>
+            </button>
+          </div>
+
+        </div>
       </div>
     </header>
 
-    <div id="box" class="loading"><div class="loader"></div><p>Йде завантаження…</p></div>
-    <script src="popup.js"></script>
-  
-    <footer>
-      <div class="version">
-        <span class="main-text">
-          Yasno Exstension 
-        </span>
-        <br>
-        <span class="secondary-text">
-          Версія:
-          <span id="ver"></span>
-        </span>
+    <div id="content-wrapper">
+      <div id="box" class="loading">
+        <div class="loading-wrapper">
+          <div class="loader"></div>
+          <p>Йде завантаження…</p>
+        </div>
       </div>
-      <button id="check-updates">Перевірити оновлення</button>
+    </div>
+    <script type="module" src="popup.js"></script>
+
+    <footer>
       <div class="author">created by <a href="https://github.com/rodnen" target="_blank">rodnen</a></div>
     </footer>
   </div>
 
   <div id="dialog" class="_dialog-wrapper">
     <div class="_dialog">
-      <span class="title">Перевірка оновлень</span>
-      <div class=" content">
-        <div class="loader"></div>
-      </div>
+      <span class="title"></span>
+
+      <div class="divider"></div>
+
+      <div class="content"></div>
     </div>
   </div>
 </body>
+
 </html>

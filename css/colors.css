@@ -27,7 +27,7 @@
     --text-accent: #fafafa;
     --select-bg: #353535;
     --select-shadow: #141414;
-    --option-hover: #676767;
+    --option-hover: #4c4c4c;
     --option-scrollbar-thumb: #7e7e7e;
   }
 }
@@ -44,7 +44,7 @@
   --text-accent: #fafafa;
   --select-bg: #353535;
   --select-shadow: #ffffff;
-  --option-hover: #676767;
+  --option-hover: #4c4c4c;
   --option-scrollbar-thumb: #7e7e7e;
 }
 
