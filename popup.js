@@ -12,6 +12,7 @@ const CONSTANTS = {
   MODES: Object.freeze(['yasno', 'dtek']),
   REFRESH_ANIMATION_DURATION: 300,
   REFRESH_MIN_DURATION: 1500,
+  THEMES: ['system', 'dark', 'light'],
   MONTHS: Object.freeze(["січ", "лют", "бер", "квіт", "трав", "чер", "лип", "серп", "вер", "жовт", "лист", "груд"]),
   EASTER_EGG_DATES: Object.freeze({ today: 6, tomorrow: 7 })
 };
@@ -35,6 +36,7 @@ class DOMElements {
 
     this.refreshBtn = this.popupMenu?.querySelector('button[data-action="refresh"]');
     this.modeBtn = this.popupMenu?.querySelector('button[data-action="mode"]');
+    this.themeBtn = this.popupMenu?.querySelector('button[data-action="theme"]');
     this.aboutBtn = this.popupMenu?.querySelector('button[data-action="about"]');
     this.dialogTitle = this.dialog?.querySelector('.title');
     this.dialogContent = this.dialog?.querySelector('.content');
@@ -142,6 +144,63 @@ class VersionManager {
       0: "У вас встановлена остання версія розширення",
       '-1': `Знайдено оновлення розширення Версія: ${latestVer}`
     }[cmp] ?? "Помилка: не вдалося знайти оновлення";
+  }
+}
+
+// ============================================================================
+// МЕНЕДЖЕР ТЕМИ
+// ============================================================================
+class ThemeManager {
+  constructor(dom) {
+    this.dom = dom;
+    this.themes = CONSTANTS.THEMES;
+  }
+
+  async init() {
+    const { theme } = await Utils.getStorageData(['theme']);
+    this.applyTheme(theme || 'system');
+  }
+
+  async toggleTheme() {
+    const { theme } = await Utils.getStorageData(['theme']);
+    const current = theme || 'system';
+
+    const next = this.getNextTheme(current);
+    await Utils.setStorageData({ theme: next });
+    this.applyTheme(next);
+  }
+
+  getNextTheme(current) {
+    const index = this.themes.indexOf(current);
+    return this.themes[(index + 1) % this.themes.length];
+  }
+
+  applyTheme(theme) {
+    const root = document.documentElement;
+
+    if (theme === 'system') {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', theme);
+    }
+
+    this.updateButtonUI(theme);
+  }
+
+  updateButtonUI(theme) {
+    if (!this.dom.themeBtn) return;
+
+    const icon = this.dom.themeBtn.querySelector('.menu-icon');
+    const text = this.dom.themeBtn.querySelector('span:last-child');
+
+    const map = {
+      system: { icon: '🖥️', text: 'Системна' },
+      dark: { icon: '🌙', text: 'Темна' },
+      light: { icon: '☀️', text: 'Світла' }
+    };
+
+    if (icon) icon.textContent = map[theme].icon;
+    if (text) text.textContent = map[theme].text;
   }
 }
 
@@ -484,10 +543,11 @@ class RefreshManager {
 }
 
 class PopupManager {
-  constructor(dom, dialogManager, dataManager) {
-    this.dom = dom;
+  constructor(dom, dialogManager, dataManager, themeManager) {
+    this.dom           = dom;
     this.dialogManager = dialogManager;
-    this.dataManager = dataManager
+    this.dataManager   = dataManager;
+    this.themeManager  = themeManager
   }
 
   async init() {
@@ -543,6 +603,11 @@ class PopupManager {
         this.dataManager.loadData();
         break;
       }
+
+      case 'theme':
+        this.themeManager.toggleTheme();
+        break;
+
       case 'about':
         this.dialogManager.showAbout({
           name: CONSTANTS.APP_NAME,
@@ -565,14 +630,16 @@ class App {
   init() {
     const { dom } = this;
 
+    this.themeManager = new ThemeManager(dom);
     this.dialogManager = new DialogManager(dom);
     this.versionManager = new VersionManager(dom, this.dialogManager);
     this.dateManager = new DateManager(dom, () => this.dataManager.loadData());
     this.selectManager = new SelectManager(dom, () => this.dataManager.loadData());
     this.dataManager = new DataManager(dom, this.selectManager, this.dateManager);
     this.refreshManager = new RefreshManager(dom, this.dataManager, this.dateManager);
-    this.popupManager = new PopupManager(dom, this.dialogManager, this.dataManager);
+    this.popupManager = new PopupManager(dom, this.dialogManager, this.dataManager, this.themeManager);
 
+    this.themeManager.init();
     this.popupManager.init();
     this.selectManager.init();
   }

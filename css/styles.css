@@ -635,6 +635,20 @@
    color: var(--text);
  }
 
+ .menu-item[data-action="theme"] div {
+   width: 100%;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+ }
+
+ .menu-item[data-action="theme"] span:last-child {
+   font-size: 12px;
+   opacity: 0.9;
+   padding: 8px;
+   border-radius: 8px;
+ }
+
  .menu-item:first-child {
    border-radius: 8px 8px 0 0;
  }
@@ -687,7 +701,7 @@
  }
 
  .slider {
-   background-color: var(--bg-light);
+   background-color: var(--bg-light2);
    bottom: 0;
    cursor: pointer;
    left: 0;
@@ -699,7 +713,7 @@
  }
 
  .slider:before {
-   background-color: var(--option-hover);
+   background-color: var(--bg);
    bottom: 2px;
    content: "";
    height: 15px;
