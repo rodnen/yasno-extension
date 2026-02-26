@@ -17,11 +17,10 @@ _(Chrome, Edge, Brave, Opera, Vivaldi)_
 ## 🚀 Installation
 
 ### 1️⃣ Open Extensions Page
-chrome://extensions/
-edge://extensions/
-opera://extensions/
-
-
+- chrome://extensions/
+- edge://extensions/
+- opera://extensions/
+  
 ---
 
 ### 2️⃣ Enable Developer Mode
@@ -74,10 +73,9 @@ _(Chrome, Edge, Brave, Opera, Vivaldi)_
 ## 🚀 Встановлення
 
 ### 1️⃣ Відкрийте сторінку розширень
-chrome://extensions/
-edge://extensions/
-opera://extensions/
-
+- chrome://extensions/
+- edge://extensions/
+- opera://extensions/
 
 ---
 
