@@ -352,33 +352,55 @@ class SelectManager {
       { element: dom.queueSelect, storageKey: 'lastGroup', type: 'queue', defaultValue: CONSTANTS.DEFAULT_QUEUE },
       { element: dom.osrSelect, storageKey: 'lastOsr', type: 'osr', defaultValue: CONSTANTS.DEFAULT_QUEUE }
     ];
+
+    this.handleOutsideClick = this.handleOutsideClick.bind(this);
   }
 
   async init() {
     if (!this.dom.queueSelect || !this.dom.osrSelect) return;
 
-    document.addEventListener('click', () => {
-      this.selects.forEach(({ element }) => element?.classList.remove('open'));
-    });
-
+    document.addEventListener('click', this.handleOutsideClick, true);
 
     this.selects.forEach(select => this.setupSelect(select));
-
     await this.loadSavedValues();
+  }
+
+  handleOutsideClick(e) {
+    const clickedInsideSelect = this.selects.some(({ element }) => {
+      return element && element.contains(e.target);
+    });
+
+    if (!clickedInsideSelect) {
+      this.closeAll();
+    }
+  }
+
+  closeAll() {
+    this.selects.forEach(({ element }) => {
+      element?.classList.remove('open');
+    });
   }
 
   setupSelect({ element, storageKey, defaultValue, type }) {
     if (!element) return;
 
     element.addEventListener('click', (e) => {
-      e.stopPropagation();
       const option = e.target.closest('.option');
 
       if (option) {
         this.setSelectValue(element, type, option.dataset.value, defaultValue);
         Utils.setStorageData({ [storageKey]: option.dataset.value });
         this.onSelectionChange?.();
+        element.classList.remove('open');
       } else {
+        e.stopPropagation();
+
+        this.selects.forEach(({ element: otherElement }) => {
+          if (otherElement !== element) {
+            otherElement?.classList.remove('open');
+          }
+        });
+
         element.classList.toggle('open');
       }
     });
@@ -544,10 +566,10 @@ class RefreshManager {
 
 class PopupManager {
   constructor(dom, dialogManager, dataManager, themeManager) {
-    this.dom           = dom;
+    this.dom = dom;
     this.dialogManager = dialogManager;
-    this.dataManager   = dataManager;
-    this.themeManager  = themeManager
+    this.dataManager = dataManager;
+    this.themeManager = themeManager
   }
 
   async init() {

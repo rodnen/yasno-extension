@@ -1,65 +1,133 @@
-/* 1. системна тема (за замовчуванням) */
+/* ============================================
+   APPLE LIQUID GLASS — COLOR SYSTEM
+   ============================================ */
+
+/* 1. Системна тема (за замовчуванням — світла) */
 :root {
-  --bg: #ffffff;
-  --bg-light: #ededed;
-  --bg-light2: #dedede;
-  --text: #202124;
-  --border: #C6D8E6;
-  --outage: #dce3eb;
-  --accent: #ff9900;
-  --text-accent: #ffffff;
-  --select-bg: #ffffff;
-  --select-shadow: #a1a1a1;
-  --option-hover: #dce3eb;
-  --option-scrollbar-thumb: #dddddd;
+  /* Базові поверхні */
+  --bg: rgba(255, 255, 255, 0.55);
+  --bg-blur: blur(28px) saturate(1.8);
+  --bg-light: rgba(255, 255, 255, 0.4);
+  --bg-light2: rgba(255, 255, 255, 0.1);
+
+  /* Скло — бліки та межі */
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-border-subtle: rgba(255, 255, 255, 0.4);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-shadow: rgba(0, 0, 0, 0.08);
+  --glass-inset: rgba(255, 255, 255, 0.6);
+
+  /* Текст */
+  --text: rgba(28, 28, 30, 0.92);
+  --text-secondary: rgba(60, 60, 67, 0.6);
+
+  /* Межі */
+  --border: rgba(200, 215, 228, 0.6);
+
+  /* Стан відключення */
+  --outage: rgba(220, 227, 235, 0.4);
+
+  /* Акцент — Apple Orange з luminance */
+  --accent: rgba(255, 159, 10, 1);
+  --accent-glass: rgba(255, 159, 10, 0.18);
+  --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
+  --text-accent: #ffffffd6;
+
+  /* Select / Dropdown */
+  --select-bg: rgba(255, 255, 255, 0.65);
+  --select-shadow: rgba(0, 0, 0, 0.12);
+  --option-hover: rgba(255, 255, 255, 0.55);
+  --option-scrollbar-thumb: rgba(0, 0, 0, 0.12);
+
+  /* Фонова сцена */
+  --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #e8f5e9 100%);
 }
 
-/* 2. якщо система попросила темну */
+/* 2. Якщо система попросила темну */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #202124;
-    --bg-light: #2a2a2a;
-    --bg-light2: #343434;
-    --text: #abacbb;
-    --border: #3d3d3d;
-    --outage: #000000;
-    --accent: #ce7b00;
-    --text-accent: #fafafa;
-    --select-bg: #353535;
-    --select-shadow: #141414;
-    --option-hover: #4c4c4c;
-    --option-scrollbar-thumb: #7e7e7e;
+    --bg: rgba(28, 28, 30, 0.72);
+    --bg-light: rgba(44, 44, 46, 0.6);
+    --bg-light2: rgba(44, 44, 46, 0.1);
+
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-subtle: rgba(255, 255, 255, 0.07);
+    --glass-highlight: rgba(255, 255, 255, 0.08);
+    --glass-shadow: rgba(0, 0, 0, 0.45);
+    --glass-inset: rgba(255, 255, 255, 0.05);
+
+    --text: rgba(171, 172, 187, 0.9);
+    --text-secondary: rgba(235, 235, 245, 0.5);
+    --border: rgba(80, 80, 85, 0.55);
+
+    --outage: rgba(0, 0, 0, 0.35);
+    --accent: rgb(213, 131, 8);
+    --accent-glass: rgba(255, 159, 10, 0.15);
+    --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
+
+    --select-bg: rgba(44, 44, 46, 0.8);
+    --select-shadow: rgba(0, 0, 0, 0.5);
+    --option-hover: rgba(255, 255, 255, 0.08);
+    --option-scrollbar-thumb: rgba(255, 255, 255, 0.18);
+
+    --scene-bg: linear-gradient(135deg, #0a0a1a 0%, #381c2a 40%, #0a1a0a 100%);
   }
 }
 
-/* 3. якщо користувач у popup натиснув “Темна” */
+/* 3. Якщо користувач натиснув "Темна" */
 [data-theme="dark"] {
-  --bg: #202124;
-  --bg-light: #2a2a2a;
-  --bg-light2: #343434;
-  --text: #abacbb;
-  --border: #3d3d3d;
-  --outage: #000000;
-  --accent: #ce7b00;
-  --text-accent: #fafafa;
-  --select-bg: #353535;
-  --select-shadow: #ffffff;
-  --option-hover: #4c4c4c;
-  --option-scrollbar-thumb: #7e7e7e;
+  --bg: rgba(28, 28, 30, 0.72);
+  --bg-light: rgba(44, 44, 46, 0.6);
+  --bg-light2: rgba(44, 44, 46, 0.1);
+
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-subtle: rgba(255, 255, 255, 0.07);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.45);
+  --glass-inset: rgba(255, 255, 255, 0.05);
+
+  --text: rgba(171, 172, 187, 0.9);
+  --text-secondary: rgba(235, 235, 245, 0.5);
+  --border: rgba(80, 80, 85, 0.55);
+
+  --outage: rgba(0, 0, 0, 0.35);
+  --accent: rgb(213, 131, 8);
+  --accent-glass: rgba(255, 159, 10, 0.15);
+  --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
+
+  --select-bg: rgba(44, 44, 46, 0.8);
+  --select-shadow: rgba(0, 0, 0, 0.5);
+  --option-hover: rgba(255, 255, 255, 0.08);
+  --option-scrollbar-thumb: rgba(255, 255, 255, 0.18);
+
+  --scene-bg: linear-gradient(135deg, #0a0a1a 0%, #381c2a 40%, #0a1a0a 100%);
 }
 
-/* 4. якщо користувач натиснув “Світла” */
+/* 4. Якщо користувач натиснув "Світла" */
 [data-theme="light"] {
-  --bg: #ffffff;
-  --bg-light: #ededed;
-  --bg-light2: #dedede;
-  --text: #202124;
-  --border: #C6D8E6;
-  --outage: #dce3eb;
-  --accent: #ff9900;
-  --text-accent: #ffffff;
-  --select-bg: #ffffff;
-  --select-shadow: #a1a1a1;
-  --option-hover: #dce3eb;
-  --option-scrollbar-thumb: #dddddd;
+  --bg: rgba(255, 255, 255, 0.55);
+  --bg-light: rgba(255, 255, 255, 0.4);
+  --bg-light2: rgba(255, 255, 255, 0.1);
+
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-border-subtle: rgba(255, 255, 255, 0.4);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-shadow: rgba(0, 0, 0, 0.08);
+  --glass-inset: rgba(255, 255, 255, 0.6);
+
+  --text: rgba(28, 28, 30, 0.92);
+  --text-secondary: rgba(60, 60, 67, 0.6);
+  --border: rgba(200, 215, 228, 0.6);
+
+  --outage: rgba(220, 227, 235, 0.4);
+  --accent: rgba(255, 159, 10, 1);
+  --accent-glass: rgba(255, 159, 10, 0.18);
+  --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
+
+  --select-bg: rgba(255, 255, 255, 0.65);
+  --select-shadow: rgba(0, 0, 0, 0.12);
+  --option-hover: rgba(255, 255, 255, 0.55);
+  --option-scrollbar-thumb: rgba(0, 0, 0, 0.12);
+
+  --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #e8f5e9 100%);
 }
