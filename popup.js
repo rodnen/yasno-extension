@@ -3,9 +3,14 @@ import { MODE_STRATEGIES } from './strategies/modeStrategies.js';
 // КОНСТАНТИ
 // ============================================================================
 const CONSTANTS = {
+  APP_VERSION: chrome.runtime.getManifest().version,
   APP_NAME: 'Yasno Extension',
   OWNER: 'rodnen',
   REPO: 'yasno-extension',
+  UPDATE_STATE_KEY: "lastUpdateKey",
+  LAST_CHECK_KEY: "lastUpdateCheck",
+  LATEST_VER_KEY: "lastVerKey",
+  CHECK_INTERVAL: 6 * 60 * 60 * 1000, // 6 часов
   INDICATOR_PADDING: 5,
   DEFAULT_QUEUE: 'all',
   DEFAULT_OSR: '301',
@@ -24,6 +29,7 @@ Object.freeze(CONSTANTS);
 // ============================================================================
 class DOMElements {
   constructor() {
+    this.header = document.querySelector('header');
     this.box = document.getElementById('box');
     this.contentWrapper = document.getElementById('content-wrapper');
     this.queueSelect = document.querySelector('.queue-select');
@@ -67,6 +73,11 @@ class Utils {
     return chrome.storage.local.get(keys);
   }
 
+  static async getStorageValue(key) {
+    const result = await chrome.storage.local.get(key);
+    return result[key];
+  }
+
   static setStorageData(data) {
     return chrome.storage.local.set(data);
   }
@@ -75,24 +86,71 @@ class Utils {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  static hideWithAnimation(el) {
+  static setDTEKMode(el) {
+    console.log("SetDTEK MODE CALLED");
     if (!el || el.dataset.hidden === "true") return;
-    el.dataset.hidden = "true";
-    el.classList.add("hiding");
 
-    el.addEventListener("transitionend", () => {
-      el.style.display = "none";
-    }, { once: true });
+    el.dataset.hidden = "true";
+
+    const trigger = el.querySelector(".select-trigger");
+    const options = el.querySelector(".select-options");
+
+    console.log(trigger);
+    console.log(options);
+    if (trigger) {
+      trigger.textContent = "DTEK";
+      console.log("SET DTEK Success");
+    }
+
+    if (options) {
+      options.style.pointerEvents = "none";
+      options.style.opacity = "0.5";
+    }
+
+    // блокуємо відкриття селекта
+    el.style.pointerEvents = "none";
   }
 
-  static showWithAnimation(el, display = "flex") {
+
+  static async setYasnoMode(el) {
     if (!el) return;
-    el.style.display = display;
-    el.classList.add("hiding");
+
+    const trigger = el.querySelector(".select-trigger");
+    const options = el.querySelector(".select-options");
+
+    // розблокування
+    el.style.pointerEvents = "";
+    if (options) {
+      options.style.pointerEvents = "";
+      options.style.opacity = "";
+    }
+
+    // отримання збережених даних
+    const data = await Utils.getStorageData(['lastGroup', 'lastOsr']);
+    const savedValue = data?.lastOsr;
+
+    const allOptions = el.querySelectorAll(".option");
+
+    let selectedOption = null;
+
+    if (savedValue) {
+      selectedOption = [...allOptions].find(opt => opt.dataset.value === savedValue);
+    }
+
+    // якщо не знайдено — беремо перший
+    if (!selectedOption && allOptions.length > 0) {
+      selectedOption = allOptions[0];
+    }
+
+    if (selectedOption) {
+      if (trigger) {
+        trigger.textContent = selectedOption.textContent;
+      }
+      el.dataset.value = selectedOption.dataset.value;
+    }
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        el.classList.remove("hiding");
         delete el.dataset.hidden;
       });
     });
@@ -103,26 +161,71 @@ class Utils {
 // МЕНЕДЖЕР ВЕРСІЙ
 // ============================================================================
 class VersionManager {
-  constructor(dom, dialogManager) {
+  constructor(dom, dialogManager, messageManager) {
     this.dom = dom;
     this.dialogManager = dialogManager;
+    this.messageManager = messageManager;
     this.init();
   }
 
   init() {
-    this.dialogManager.onCheckUpdate = () => this.checkUpdates();
+    this.dialogManager.onCheckUpdate = () => this.manualCheck();
 
     if (this.dom.versionContainer) {
-      this.dom.versionContainer.textContent = chrome.runtime.getManifest().version;
+      this.dom.versionContainer.textContent = CONSTANTS.APP_VERSION;
     }
+
+    this.autoCheck();
   }
 
-  async checkUpdates() {
-    const { dialogManager } = this;
-    dialogManager.closeDialog();
-    dialogManager.showDialog();
-    dialogManager.updateTitle("Перевірка оновлення");
+  semverCompare(a, b) {
+    const clean = v => v.replace(/^[^0-9]*/, '').split('.').map(Number);
+    const [va, vb] = [clean(a), clean(b)];
+    for (let i = 0; i < 3; i++) {
+      if (va[i] > vb[i]) return 1;
+      if (va[i] < vb[i]) return -1;
+    }
+    return 0;
+  }
 
+  async autoCheck() {
+    const lastCheck = await Utils.getStorageValue(CONSTANTS.LAST_CHECK_KEY) || 0;
+    const updateState = await Utils.getStorageValue(CONSTANTS.UPDATE_STATE_KEY);
+    const latestVer = await Utils.getStorageValue(CONSTANTS.LATEST_VER_KEY);
+
+    const now = Date.now();
+
+    if (!lastCheck || updateState === undefined) {
+      await this.performCheck(false);
+      return;
+    }
+
+    if (now - lastCheck < CONSTANTS.CHECK_INTERVAL) {
+      const isNewer = latestVer && this.semverCompare(latestVer, CONSTANTS.APP_VERSION) === 1;
+      if (updateState === -1 && isNewer) {
+        this.messageManager?.show({
+          text: `Доступне оновлення: ${latestVer}`,
+          icon: '🚀',
+          type: 'info',
+          id: 'update'
+        });
+      }
+
+      return;
+    }
+
+    await this.performCheck(false);
+  }
+
+  async manualCheck() {
+    this.dialogManager.closeDialog();
+    this.dialogManager.showDialog();
+    this.dialogManager.updateTitle("Перевірка оновлення");
+
+    await this.performCheck(true);
+  }
+
+  async performCheck(showResult) {
     try {
       const { result } = await Utils.sendMessage({
         action: 'checkUpdate',
@@ -130,11 +233,41 @@ class VersionManager {
         repo: CONSTANTS.REPO
       });
 
-      dialogManager.updateContent(`<div class="update-wrapper">${this.getUpdateMessage(result)}</div>`, true);
+      const cmp = Number(result.cmp);
+      const latestVer = result.latestVer;
 
-    } catch (error) {
+      await Utils.setStorageData({
+        [CONSTANTS.LAST_CHECK_KEY]: Date.now(),
+        [CONSTANTS.UPDATE_STATE_KEY]: cmp,
+        [CONSTANTS.LATEST_VER_KEY]: latestVer
+      });
+
+      if (cmp === -1) {
+        this.messageManager?.show({
+          text: `Доступне оновлення: ${latestVer}`,
+          icon: '🚀',
+          type: 'info'
+        });
+      }
+
+      if (showResult) {
+        this.dialogManager.updateContent(
+          `<div class="update-wrapper">
+             ${this.getUpdateMessage(result)}
+           </div>`,
+          true
+        );
+      }
+    }
+    catch (error) {
       console.error('Update check error:', error);
-      dialogManager.updateContent('<div class="update-wrapper">Помилка при перевірці оновлень</div>', true);
+
+      if (showResult) {
+        this.dialogManager.updateContent(
+          '<div class="update-wrapper">Помилка при перевірці оновлень</div>',
+          true
+        );
+      }
     }
   }
 
@@ -142,7 +275,7 @@ class VersionManager {
     return {
       1: "У вас встановлена новіша версія розширення",
       0: "У вас встановлена остання версія розширення",
-      '-1': `Знайдено оновлення розширення Версія: ${latestVer}`
+      [-1]: `Знайдено оновлення розширення Версія: ${latestVer}`
     }[cmp] ?? "Помилка: не вдалося знайти оновлення";
   }
 }
@@ -564,6 +697,78 @@ class RefreshManager {
   }
 }
 
+class MessageManager {
+  constructor(dom) {
+    this.header = dom.header;
+  }
+
+  show({ text = '', icon = 'ℹ️', type = 'info', id = 'default' } = {}) {
+    if (!this.header) return;
+
+    let block = this.header.querySelector(`.message-block[data-id="${id}"]`);
+
+    if (block) {
+      const item = block.querySelector('.message-item');
+      const iconEl = block.querySelector('.message-icon');
+      const textEl = block.querySelector('.message-content span');
+
+      item.className = `message-item message-${type}`;
+
+      if (iconEl) iconEl.innerHTML = icon;
+      if (textEl) textEl.textContent = text;
+
+      return block;
+    }
+
+    block = document.createElement('div');
+    block.className = 'message-block';
+    block.dataset.id = id;
+
+    const item = document.createElement('div');
+    item.className = `message-item message-${type}`;
+
+    const iconEl = document.createElement('span');
+    iconEl.className = 'message-icon';
+    iconEl.innerHTML = icon;
+
+    const content = document.createElement('div');
+    content.className = 'message-content';
+
+    const textEl = document.createElement('span');
+    textEl.textContent = text;
+
+    content.appendChild(textEl);
+
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'cross-icon';
+
+    closeBtn.addEventListener('click', () => {
+      this.hide(block);
+    });
+
+    item.appendChild(iconEl);
+    item.appendChild(content);
+    // item.appendChild(closeBtn);
+
+    block.appendChild(item);
+
+    this.header.prepend(block);
+
+    return block;
+  }
+
+  hide(block) {
+    if (!block) return;
+
+    block.style.opacity = '0';
+    block.style.transform = 'translateY(-10px)';
+
+    setTimeout(() => {
+      block.remove();
+    }, 200);
+  }
+}
+
 class PopupManager {
   constructor(dom, dialogManager, dataManager, themeManager) {
     this.dom = dom;
@@ -582,9 +787,9 @@ class PopupManager {
     checkbox.checked = modeIndex === 1;
 
     if (modeIndex === 1) {
-      Utils.hideWithAnimation(this.dom.osrSelect);
+      Utils.setDTEKMode(this.dom.osrSelect);
     } else {
-      Utils.showWithAnimation(this.dom.osrSelect);
+      Utils.setYasnoMode(this.dom.osrSelect);
     }
 
     dotsBtn.addEventListener('click', (e) => {
@@ -617,9 +822,9 @@ class PopupManager {
         Utils.setStorageData({ mode });
 
         if (mode === 1) {
-          Utils.hideWithAnimation(this.dom.osrSelect);
+          Utils.setDTEKMode(this.dom.osrSelect);
         } else {
-          Utils.showWithAnimation(this.dom.osrSelect);
+          Utils.setYasnoMode(this.dom.osrSelect);
         }
 
         this.dataManager.loadData();
@@ -649,12 +854,17 @@ class App {
     this.init();
   }
 
-  init() {
+  async init() {
     const { dom } = this;
+
+    /* await chrome.storage.local.clear();
+     await chrome.storage.sync?.clear();
+     await chrome.storage.session?.clear();*/
 
     this.themeManager = new ThemeManager(dom);
     this.dialogManager = new DialogManager(dom);
-    this.versionManager = new VersionManager(dom, this.dialogManager);
+    this.messageManager = new MessageManager(dom);
+    this.versionManager = new VersionManager(dom, this.dialogManager, this.messageManager);
     this.dateManager = new DateManager(dom, () => this.dataManager.loadData());
     this.selectManager = new SelectManager(dom, () => this.dataManager.loadData());
     this.dataManager = new DataManager(dom, this.selectManager, this.dateManager);
@@ -662,8 +872,8 @@ class App {
     this.popupManager = new PopupManager(dom, this.dialogManager, this.dataManager, this.themeManager);
 
     this.themeManager.init();
-    this.popupManager.init();
     this.selectManager.init();
+    this.popupManager.init();
   }
 }
 

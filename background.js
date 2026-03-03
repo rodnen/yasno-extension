@@ -16,18 +16,29 @@ function minutesToTime(min) {
 }
 
 /* ---------- спільний рендер рядка ---------- */
-function buildSlotHTML({ start, end, isOutage, isNow, slotIndex }) {
-  const iconUrl = chrome.runtime.getURL('icons/no-electricity.svg');
+function buildSlotHTML({ start, end, isOutage, isOutdated, isNow, slotIndex, size }) {
+
+  const noOutageBlock =
+    (!isOutage && slotIndex === 0 && size === 1 && !isOutdated)
+      ? `<div class="no-outages">
+           <span class="happy-emoji">🤩</span>
+           <span>Відключень не буде 🥳🎉</span>
+         </div>`
+      : '';
+
   return `
+    ${noOutageBlock}
     <div class="_table_element${isOutage ? ' outage' : ''}${isNow ? ' selected' : ''}">
       <div>
         <div class="_outage_time">
           ${isNow ? `<div class="_table_current_selected" data-index="${slotIndex}"></div>` : ''}
           ${minutesToTime(start)} - ${minutesToTime(end)}
         </div>
-        <div class="_outage_type">${isOutage ? 'Світла немає' : 'Світло є'}</div>
+        <div class="_outage_type">
+          ${isOutage ? 'Світла немає' : 'Світло є'}
+        </div>
       </div>
-      ${isOutage ? `<img src="${iconUrl}" />` : ''}
+      ${isOutage ? `<div class="outage_icon"></div>` : ''}
     </div>
   `;
 }
@@ -177,17 +188,18 @@ async function buildTableHTML(group = 'all', osr = '301', currentDayNumber = new
       if (slots.length) hasAnySlots = true;
 
       if (isOutdated && hasAnySlots) {
-        rows.push(`<div class="_table_is_outdated">⏳ Очікуємо на більш актуальні дані</div>`);
+        rows.push(`<div class="_table_is_outdated"><span class="clock-emoji">⏳</span><span>Очікуємо на більш актуальні дані</span></div>`);
       }
 
       for (const slot of slots) {
-        const isNow = slot.start <= nowMin && nowMin < slot.end && effectiveDayType === 'today';
         rows.push(buildSlotHTML({
           start: slot.start,
           end: slot.end,
           isOutage: slot.type === 'Definite',
-          isNow,
-          slotIndex
+          isOutdated: isOutdated,
+          isNow: slot.start <= nowMin && nowMin < slot.end && effectiveDayType === 'today',
+          slotIndex: slotIndex,
+          size: slots.length
         }));
         slotIndex++;
       }
@@ -195,7 +207,8 @@ async function buildTableHTML(group = 'all', osr = '301', currentDayNumber = new
 
     if (isEmergency) {
       rows.push(`<div class="emergency-shutdown"><span class="police-car-emoji">🚨</span><span>Екстрені відключення, графіки не діють</span></div>`);
-    } else if (!hasAnySlots) {
+    }
+    else if (!hasAnySlots) {
       rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
     }
 
@@ -304,8 +317,10 @@ function renderDTEKTable(factData, group, dayType) {
     start: slot.start,
     end: slot.end,
     isOutage: slot.status === 'outage',
+    isOutdated: false,
     isNow: slot.start <= nowMin && nowMin < slot.end && dayType === 'today',
-    slotIndex
+    slotIndex: slotIndex,
+    size: slots.length
   })).join('');
 }
 

@@ -1,3 +1,7 @@
+html {
+  background: #000;
+}
+
 body {
   /* === Оригінальні стилі body === */
   width: 300px;
@@ -41,6 +45,9 @@ body {
 
 /* ── Header / Footer ── */
 header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   border-bottom: 1px solid var(--glass-border-subtle);
   background: linear-gradient(180deg,
       var(--glass-inset) 0%,
@@ -159,12 +166,8 @@ footer {
   transform: scale(0.97);
 }
 
-.custom-select.hiding {
-  transform: scale(0.8);
-  opacity: 0;
-  margin: 0;
-  padding: 0;
-  pointer-events: none;
+.custom-select[data-hidden="true"] {
+  cursor: not-allowed;
 }
 
 .custom-select.has-value .select-label {
@@ -254,7 +257,9 @@ footer {
 }
 
 /* ── Table elements ── */
+
 ._table_element,
+.no-outages,
 .version,
 button[data-action="check-update"] {
   background: var(--bg-light2);
@@ -262,11 +267,15 @@ button[data-action="check-update"] {
 }
 
 ._table_is_outdated {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
   background: var(--accent-glass);
   border: 1px solid var(--glass-border-subtle);
 }
 
 ._table_element,
+.no-outages,
 .version,
 button[data-action="check-update"],
 ._table_is_outdated {
@@ -285,6 +294,13 @@ button[data-action="check-update"],
   margin: 4px 0;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.2s ease;
+}
+
+.no-outages {
+  background: var(--accent-glass);
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
 }
 
 ._table_element {
@@ -308,9 +324,37 @@ button[data-action="check-update"],
     0 2px 8px rgba(255, 59, 48, 0.06);
 }
 
+/*._table_element.selected {
+  background: var(--accent-glass);
+}*/
+
 ._table_element.selected ._outage_time {
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+.outage_icon,
+.cross-icon {
+  background-color: var(--text);
+}
+
+.outage_icon {
+  width: 18px;
+  height: 18px;
+  -webkit-mask: url("/icons/no-electricity.svg") no-repeat center;
+  mask: url("/icons/no-electricity.svg") no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.cross-icon {
+  width: 14px;
+  height: 14px;
+  -webkit-mask: url("/icons/cross.svg") no-repeat center;
+  mask: url("/icons/cross.svg") no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  cursor: pointer;
 }
 
 ._table_current_selected {
@@ -334,6 +378,8 @@ button[data-action="check-update"],
 
 #box {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
@@ -495,10 +541,12 @@ button[data-action="check-update"]:active {
 
 /* ── Стани очікування ── */
 .waiting-for-updates,
-.emergency-shutdown {
+.emergency-shutdownm {
+  flex: 1;
   display: flex;
   align-items: center;
   flex-direction: column;
+  justify-content: center;
   font-size: 20px;
   text-align: center;
   font-weight: 300;
@@ -726,13 +774,9 @@ button[data-action="check-update"]:active {
 }
 
 /* ── Popup Menu ── */
-.popup-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-
+.popup-menu,
+.message-block {
   /* Liquid Glass floating panel */
-  background: var(--bg-light2);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 
@@ -743,8 +787,22 @@ button[data-action="check-update"]:active {
     0 4px 12px rgba(0, 0, 0, 0.08);
 
   border-radius: 16px;
-  min-width: 200px;
+}
+
+.message-block {
+  background: var(--accent-glass);
+  width: 100%;
+  display: flex;
+  align-self: center;
+}
+
+.popup-menu {
+  position: absolute;
   z-index: 1000;
+  background: var(--bg-light2);
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 200px;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px) scale(0.97);
@@ -765,15 +823,13 @@ button[data-action="check-update"]:active {
 /* Скляний трикутник */
 
 /* ── Menu items ── */
-.menu-item {
+.menu-item,
+.message-block .message-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
   border: none;
   background: none;
-  width: 100%;
   text-align: left;
   font-size: 13px;
   font-weight: 400;
@@ -782,7 +838,19 @@ button[data-action="check-update"]:active {
   transition: background 0.15s ease;
 }
 
-.menu-item .menu-content {
+.message-block .message-item {
+  padding: 0.75rem;
+  width: 100%;
+}
+
+.menu-item {
+  padding: 0.75rem 1rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+.menu-item .menu-content,
+.message-block .message-content {
   width: 100%;
   display: flex;
   align-items: center;
@@ -792,7 +860,6 @@ button[data-action="check-update"]:active {
 
 .menu-item[data-action="theme"] span:last-child {
   font-size: 12px;
-  opacity: 0.85;
   padding: 4px 8px;
   border-radius: 8px;
   background: var(--accent-glass);
@@ -826,7 +893,6 @@ button[data-action="check-update"]:active {
   width: 100%;
   height: 1px;
   background: var(--glass-border-subtle);
-  opacity: 0.85;
 }
 
 .menu-separator {
@@ -834,7 +900,8 @@ button[data-action="check-update"]:active {
 }
 
 /* ── Menu icon ── */
-.menu-icon {
+.menu-icon,
+.message .message-icon {
   width: 18px;
   height: 18px;
   margin-top: -4px;
@@ -844,9 +911,9 @@ button[data-action="check-update"]:active {
 /* ── Toggle Switch ── */
 .switch {
   display: inline-block;
-  height: 20px;
+  height: 17px;
   position: relative;
-  width: 36px;
+  width: 37px;
   pointer-events: none;
 }
 
@@ -880,18 +947,16 @@ button[data-action="check-update"]:active {
       rgba(245, 245, 245, 0.85) 100%);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
   content: "";
-  height: 15px;
-  left: 2px;
+  height: 11px;
+  width: 17px;
+  left: 3px;
   position: absolute;
   transition: transform .35s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow .2s ease;
-  width: 15px;
 }
 
 input:checked+.slider {
-  background: linear-gradient(135deg,
-      var(--accent) 0%,
-      rgba(255, 140, 0, 0.85) 100%);
+  background: var(--accent);
   border-color: transparent;
   box-shadow:
     var(--accent-glow),
@@ -899,7 +964,10 @@ input:checked+.slider {
 }
 
 input:checked+.slider:before {
-  transform: translateX(16px);
+  transform: translateX(13px);
+  /*background: linear-gradient(180deg,
+      rgba(84, 255, 118, 0.95) 0%,
+      rgba(84, 255, 118, 0.85) 100%);*/
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
 }
 
@@ -908,5 +976,5 @@ input:checked+.slider:before {
 }
 
 .slider.round:before {
-  border-radius: 50%;
+  border-radius: 20px;
 }
