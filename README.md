@@ -1,9 +1,9 @@
 > 🌐 [Українська](#українська) | [English](#english)
 
 <p align="center">
-  <img src="./images/screenshot1.png" width="250"/>
-  <img src="./images/screenshot2.png" width="250"/>
-  <img src="./images/screenshot3.png" width="250"/>
+  <img src="./images/img_1.png" width="250"/>
+  <img src="./images/img_2.png" width="250"/>
+  <img src="./images/img_3.png" width="250"/>
 </p>
 
 ## Українська
