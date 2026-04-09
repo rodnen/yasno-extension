@@ -67,10 +67,6 @@ _(Chrome, Edge, Brave, Opera, Vivaldi)_
 
 ---
 
-### ✨ Порада: Закріпіть розширення на панелі інструментів для швидкого доступу.
-
----
-
 ## English
 ## 🔌 Ukraine Blackout Schedule Extension (Yasno + DTEK)
 Browser extension that allows you to quickly check power outage schedules (blackouts) in Ukraine using official data from **Yasno** and **DTEK**.
@@ -133,7 +129,3 @@ Extensions page → **Remove**
 - Do **not** move or delete the extension folder
 - Unpacked extensions are **not verified** by the Chrome Web Store
 - Incognito mode requires manual permission
-
----
-
-### ✨ Tip: Pin the extension to the toolbar for quick access.
