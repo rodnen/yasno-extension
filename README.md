@@ -67,7 +67,7 @@ _(Chrome, Edge, Brave, Opera, Vivaldi)_
 
 ---
 
-# ✨ Порада: Закріпіть розширення на панелі інструментів для швидкого доступу.
+### ✨ Порада: Закріпіть розширення на панелі інструментів для швидкого доступу.
 
 ---
 
@@ -136,4 +136,4 @@ Extensions page → **Remove**
 
 ---
 
-# ✨ Tip: Pin the extension to the toolbar for quick access.
+### ✨ Tip: Pin the extension to the toolbar for quick access.
