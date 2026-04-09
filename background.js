@@ -1,8 +1,12 @@
 // background.js
+import { Utils } from './utils/utils.js';
 
 const CACHE_KEY_PREFIX = 'cache:yasno:table';
 const CACHE_TTL_MIN = 20;
 const CURRENT_VERSION = chrome.runtime.getManifest().version;
+
+const AJAX_URL = 'https://www.dtek-dnem.com.ua/ua/ajax';
+const MAIN_PAGE_URL = 'https://www.dtek-dnem.com.ua/ua/shutdowns';
 
 const CITY = "м. Дніпро";
 const STREET = "тупик Шкільний";
@@ -16,29 +20,56 @@ function minutesToTime(min) {
 }
 
 /* ---------- спільний рендер рядка ---------- */
-function buildSlotHTML({ start, end, isOutage, isOutdated, isNow, slotIndex, size }) {
-
-  const noOutageBlock =
-    (!isOutage && slotIndex === 0 && size === 1 && !isOutdated)
-      ? `<div class="no-outages">
-           <span class="happy-emoji">🤩</span>
-           <span>Відключень не буде 🥳🎉</span>
-         </div>`
-      : '';
-
+function buildNoOutageHTML() {
   return `
-    ${noOutageBlock}
-    <div class="_table_element${isOutage ? ' outage' : ''}${isNow ? ' selected' : ''}">
-      <div>
+    <div class="no-outages-msg">
+      <span>Відключення</span><br>
+      <span>не застосовуються</span>
+    </div>
+  `;
+}
+
+function buildOutdatedHTML() {
+  return `
+  <div class="_table_is_outdated">
+    <span class="clock-emoji">⏳</span>
+    <span>Очікуємо на більш актуальні дані</span>
+  </div>`;
+}
+
+function buildEmergencyHTML() {
+  return `
+  <div class="emergency-shutdown">
+    <span class="police-car-emoji">🚨</span>
+    <span>Екстрені відключення, графіки не діють</span>
+  </div>`;
+}
+
+function buildWaitingHTML() {
+  return `
+  <div class="waiting-for-updates">
+    <span class="clock-emoji">⏳</span>
+    <span>Очікуємо оновлення</span>
+  </div>`;
+}
+
+function buildSlotHTML({ turn = null, start, end, isOutage, isOutdated, isNow, slotIndex, size }) {
+  if ((!isOutage && slotIndex === 0 && size === 1 && !isOutdated && turn === null)) {
+    return buildNoOutageHTML();
+  }
+  return `
+    <div class="_table_element${isOutage ? ' outage' : ''}${isNow ? ' selected' : ''}" data-index="${turn}">
+      <div style="flex: 1;">
         <div class="_outage_time">
-          ${isNow ? `<div class="_table_current_selected" data-index="${slotIndex}"></div>` : ''}
-          ${minutesToTime(start)} - ${minutesToTime(end)}
+          ${isNow ? `<div class="_table_current_selected"></div>` : ''}
+          <span>${minutesToTime(start)} - ${minutesToTime(end)}</span>
         </div>
         <div class="_outage_type">
           ${isOutage ? 'Світла немає' : 'Світло є'}
         </div>
       </div>
       ${isOutage ? `<div class="outage_icon"></div>` : ''}
+      ${turn !== null ? `<span class="group-number-text">${turn}</span>` : ''}
     </div>
   `;
 }
@@ -54,14 +85,14 @@ function cacheKey(cacheParts) {
 
 async function getCached(cacheParts) {
   const key = cacheKey(cacheParts);
-  const stored = await chrome.storage.local.get(key);
+  const stored = await Utils.getStorageData(key)
   if (!stored[key]) return null;
 
   const { ts, html } = stored[key];
   const valid = Date.now() - ts < CACHE_TTL_MIN * 60 * 1000;
 
   if (!valid) {
-    await chrome.storage.local.remove(key);
+    await Utils.removeStorageData(key);
     return null;
   }
   return html;
@@ -69,30 +100,25 @@ async function getCached(cacheParts) {
 
 async function setCached(cacheParts, html) {
   const key = cacheKey(cacheParts);
-  await chrome.storage.local.set({ [key]: { ts: Date.now(), html } });
+  await Utils.setStorageData({ [key]: { ts: Date.now(), html } });
 }
 
 // Окремі ключі для raw DTEK даних (не HTML, інший TTL не потрібен)
 async function getCachedDTEKRawData() {
-  const stored = await chrome.storage.local.get(['dtek:raw:data', 'dtek:raw:data:ts']);
-  const ts = stored['dtek:raw:data:ts'];
-  const data = stored['dtek:raw:data'];
-  if (!data || !ts) return null;
+  const key = 'dtek:raw:data';
+  const stored = await Utils.getStorageData(key);
+  const entry = stored[key];
+  if (!entry?.ts) return null;
 
-  const valid = Date.now() - ts < CACHE_TTL_MIN * 60 * 1000;
+  const valid = Date.now() - entry.ts < CACHE_TTL_MIN * 60 * 1000;
   if (!valid) {
-    await chrome.storage.local.remove(['dtek:raw:data', 'dtek:raw:data:ts']);
+    await Utils.removeStorageData(key);
     return null;
   }
-  return data;
+  return entry.payload;
 }
 
-async function setCachedDTEKRawData(data) {
-  await chrome.storage.local.set({
-    'dtek:raw:data': data,
-    'dtek:raw:data:ts': Date.now()
-  });
-}
+
 
 /* ---------- оновлення розширення ---------- */
 async function checkUpdate(owner, repo) {
@@ -141,24 +167,22 @@ function semverCompare(a, b) {
 async function buildTableHTML(group = 'all', osr = '301', currentDayNumber = new Date().getDate(), dayType = 'today') {
   const cached = await getCached({ group, osr, dayType });
   if (cached) {
-    console.log('[BG] Yasno: кеш дійсний');
     return cached;
   }
-
   const url = `https://app.yasno.ua/api/blackout-service/public/shutdowns/regions/3/dsos/${osr}/planned-outages`;
   try {
     const data = await fetch(url).then(r => r.json());
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
 
-    const localizeType = t => (t === 'Definite' ? 'Світла немає' : 'Світло є');
-
     const rows = [];
     const groups = group === 'all' ? Object.keys(data) : [group];
 
     let hasAnySlots = false;
-    let isEmergency = false;
     let isOutdated = false;
+    let isEmergency = false;
+    let isNoOutages = false;
+
     let effectiveDayType = dayType;
     let slotIndex = 0;
 
@@ -178,21 +202,24 @@ async function buildTableHTML(group = 'all', osr = '301', currentDayNumber = new
       const iso = schedules?.[effectiveDayType]?.date;
       const scheduleDayNumber = new Date(iso).getDate();
 
-      if (effectiveDayType === 'tomorrow' && scheduleDayNumber === currentDayNumber && effectiveDayType === dayType) {
+      if (
+        effectiveDayType === 'tomorrow' &&
+        scheduleDayNumber === currentDayNumber &&
+        effectiveDayType === dayType
+      ) {
         continue;
       }
 
-      isOutdated = schedules?.[effectiveDayType]?.status === 'WaitingForSchedule';
       isEmergency = schedules?.[effectiveDayType]?.status === 'EmergencyShutdowns';
+      isNoOutages = schedules?.[effectiveDayType]?.status === 'NoOutages';
+      isOutdated = schedules?.[effectiveDayType]?.status === 'WaitingForSchedule';
 
       if (slots.length) hasAnySlots = true;
-
-      if (isOutdated && hasAnySlots) {
-        rows.push(`<div class="_table_is_outdated"><span class="clock-emoji">⏳</span><span>Очікуємо на більш актуальні дані</span></div>`);
-      }
+      if (isOutdated && hasAnySlots) rows.push(buildOutdatedHTML());
 
       for (const slot of slots) {
         rows.push(buildSlotHTML({
+          turn: group === "all" ? g : null,
           start: slot.start,
           end: slot.end,
           isOutage: slot.type === 'Definite',
@@ -205,12 +232,9 @@ async function buildTableHTML(group = 'all', osr = '301', currentDayNumber = new
       }
     }
 
-    if (isEmergency) {
-      rows.push(`<div class="emergency-shutdown"><span class="police-car-emoji">🚨</span><span>Екстрені відключення, графіки не діють</span></div>`);
-    }
-    else if (!hasAnySlots) {
-      rows.push(`<div class="waiting-for-updates"><span class="clock-emoji">⏳</span><span>Очікуємо оновлення</span></div>`);
-    }
+    if (isEmergency) rows.push(buildEmergencyHTML());
+    else if (isNoOutages) rows.push(buildNoOutageHTML());
+    else if (!hasAnySlots) rows.push(buildWaitingHTML());
 
     const html = rows.join('');
     await setCached({ group, osr, dayType }, html);
@@ -224,32 +248,42 @@ async function buildTableHTML(group = 'all', osr = '301', currentDayNumber = new
 /* ========================================
    DTEK
    ======================================== */
-async function fetchDTEKRawData() {
-  const AJAX_URL = 'https://www.dtek-dnem.com.ua/ua/ajax';
-  const MAIN_PAGE_URL = 'https://www.dtek-dnem.com.ua/ua/shutdowns';
+
+async function fetchDTEKData(city, street) {
+  const dateStr = new Date().toLocaleString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).replace(/,/g, '');
 
   try {
-    const pageResponse = await fetch(MAIN_PAGE_URL, { method: 'GET', credentials: 'include' });
-    if (!pageResponse.ok) throw new Error('Не вдалося завантажити головну сторінку');
+    const pageResponse = await fetch(MAIN_PAGE_URL, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!pageResponse.ok) {
+      throw new Error('Не вдалося завантажити головну сторінку');
+    }
 
     const html = await pageResponse.text();
+
     const csrfToken = html.match(/<meta name="csrf-token" content="(.*?)">/)?.[1];
     const csrfParam = html.match(/<meta name="csrf-param" content="(.*?)">/)?.[1] || '_csrf';
 
-    if (!csrfToken) throw new Error('CSRF токен не знайдено');
-
-    const dateStr = new Date().toLocaleString('uk-UA', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    }).replace(/,/g, '');
+    if (!csrfToken) {
+      throw new Error('CSRF токен не знайдено');
+    }
 
     const formData = new URLSearchParams({
       [csrfParam]: csrfToken,
       method: 'getHomeNum',
       'data[0][name]': 'city',
-      'data[0][value]': CITY,
+      'data[0][value]': city,
       'data[1][name]': 'street',
-      'data[1][value]': STREET,
+      'data[1][value]': street,
       'data[2][name]': 'updateFact',
       'data[2][value]': dateStr
     });
@@ -267,9 +301,21 @@ async function fetchDTEKRawData() {
       body: formData.toString()
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
 
-    const data = await response.json();
+    const jsonData = await response.json();
+    return jsonData;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function fetchDTEKRawData() {
+  try {
+    const data = await fetchDTEKData(CITY, STREET);
     return data.fact;
   } catch (error) {
     console.error('[DTEK] Помилка:', error);
@@ -305,45 +351,80 @@ function mergeSlots(slots) {
 
 function renderDTEKTable(factData, group, dayType) {
   const timestamp = factData.today;
-  const dayData = dayType === 'today' ? factData.data[timestamp] : factData.data[timestamp + 86400];
-  if (!dayData?.[group]) return '';
+  const dayData = dayType === 'today'
+    ? factData.data[timestamp]
+    : factData.data[timestamp + 86400];
+
+  if (!dayData) return '';
+
+  const groups = group === 'all' ? Object.keys(dayData).filter(k => k.startsWith('GPV')) : [`GPV${group}`];
 
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
 
-  const slots = mergeSlots(buildHalfHourSlots(dayData[group]));
+  return groups.map(g => {
+    if (!dayData[g]) return '';
 
-  return slots.map((slot, slotIndex) => buildSlotHTML({
-    start: slot.start,
-    end: slot.end,
-    isOutage: slot.status === 'outage',
-    isOutdated: false,
-    isNow: slot.start <= nowMin && nowMin < slot.end && dayType === 'today',
-    slotIndex: slotIndex,
-    size: slots.length
-  })).join('');
+    const slots = mergeSlots(buildHalfHourSlots(dayData[g]));
+
+    return slots.map((slot, slotIndex) => buildSlotHTML({
+      turn: group === 'all' ? g.replace("GPV", "") : null,
+      start: slot.start,
+      end: slot.end,
+      isOutage: slot.status === 'outage',
+      isOutdated: false,
+      isNow: slot.start <= nowMin && nowMin < slot.end && dayType === 'today',
+      slotIndex,
+      size: slots.length
+    })).join('');
+
+  }).join('');
 }
 
 async function buildTableHTMLDTEK(group = 'all', dayType = 'today') {
   const cached = await getCached(['dtek', group, dayType]);
   if (cached) {
-    console.log(`[BG] DTEK: кеш дійсний для ${dayType}`);
     return cached;
   }
 
   let rawData = await getCachedDTEKRawData();
 
   if (!rawData) {
-    console.log('[BG] DTEK: запит до сервера...');
     rawData = await fetchDTEKRawData();
     if (!rawData) return null;
-    await setCachedDTEKRawData(rawData);
+
+    Utils.setStorageData({
+      'dtek:raw:data': { payload: rawData, ts: Date.now() }
+    });
   }
 
-  const html = renderDTEKTable(rawData, `GPV${group}`, dayType);
+  const html = renderDTEKTable(rawData, group, dayType);
   await setCached(['dtek', group, dayType], html);
   return html;
 }
+
+async function getHouseNumbers(city, street) {
+  try {
+    const data = await fetchDTEKData(city, street);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Final Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function getHouseData(city, street, house) {
+  try {
+    const response = await fetchDTEKData(city, street);
+    const data = response.data[house] || response.data.data[house] || {};
+    const updateTimestamp = response.updateTimestamp;
+    return { success: true, data, updateTimestamp };
+  } catch (error) {
+    console.error('Final Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 
 /* ---------- messaging ---------- */
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -351,6 +432,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     checkUpdate: () => checkUpdate(msg.owner, msg.repo).then(result => sendResponse({ result })),
     fetchYasno: () => buildTableHTML(msg.group, msg.osr, msg.currentDayNumber, msg.dayType).then(sendResponse),
     fetchDTEK: () => buildTableHTMLDTEK(msg.group, msg.dayType).then(sendResponse),
+    fetchHouses: () => getHouseNumbers(msg.city, msg.street).then(sendResponse),
+    fetchHouseData: () => getHouseData(msg.city, msg.street, msg.house).then(sendResponse),
     clearCache: () => clearAllCache().then(() => sendResponse({ ok: true }))
   };
 
@@ -364,8 +447,5 @@ async function clearAllCache() {
 
   if (toRemove.length) {
     await chrome.storage.local.remove(toRemove);
-    console.log('[BG] кеш очищено, видалено ключів:', toRemove.length);
-  } else {
-    console.log('[BG] кеш порожній');
   }
 }

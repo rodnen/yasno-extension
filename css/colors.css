@@ -7,32 +7,37 @@
   /* Базові поверхні */
   --bg: rgba(255, 255, 255, 0.55);
   --bg-blur: blur(28px) saturate(1.8);
-  --bg-light: rgba(255, 255, 255, 0.4);
+  --bg-light: rgba(255, 255, 255, 0.55);
   --bg-light2: rgba(255, 255, 255, 0.1);
+  --bg-light3: rgba(190, 190, 190, 0.5);
 
   /* Скло — бліки та межі */
   --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-border-subtle: rgba(255, 255, 255, 0.4);
+  --glass-border-subtle: rgba(255, 255, 255, 0.7);
   --glass-highlight: rgba(255, 255, 255, 0.85);
   --glass-shadow: rgba(0, 0, 0, 0.08);
   --glass-inset: rgba(255, 255, 255, 0.6);
 
   /* Текст */
   --text: rgba(28, 28, 30, 0.92);
-  --text-secondary: rgba(60, 60, 67, 0.6);
+  --text-secondary: rgba(67, 67, 67, 1);
 
   /* Межі */
   --border: rgba(200, 215, 228, 0.6);
 
   /* Стан відключення */
   --outage: rgba(150, 150, 150, 0.3);
+  --outage2: rgba(120, 120, 120, 0.5);
 
   /* Акцент — Apple Orange з luminance */
   --accent: rgba(255, 159, 10, 1);
+  --accent-text: rgba(255, 159, 10, 1);
   --accent-glass: rgba(255, 159, 10, 0.18);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
   --text-accent: #ffffffd6;
 
+  --scroll: rgb(162, 162, 162);
+  --scroll-hover: rgb(113, 113, 113);
   /* Select / Dropdown */
   --select-bg: rgba(255, 255, 255, 0.65);
   --select-shadow: rgba(0, 0, 0, 0.12);
@@ -41,6 +46,42 @@
 
   /* Фонова сцена */
   --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #e8f5e9 100%);
+
+  --g-1-1: var(--bg-light2);
+  --g-1-1-out: var(--outage);
+
+  --g-1-2: var(--bg-light3);
+  --g-1-2-out: var(--outage2);
+
+  --g-2-1: var(--bg-light2);
+  --g-2-1-out: var(--outage);
+
+  --g-2-2: var(--bg-light3);
+  --g-2-2-out: var(--outage2);
+
+  --g-3-1: var(--bg-light2);
+  --g-3-1-out: var(--outage);
+
+  --g-3-2: var(--bg-light3);
+  --g-3-2-out: var(--outage2);
+
+  --g-4-1: var(--bg-light2);
+  --g-4-1-out: var(--outage);
+
+  --g-4-2: var(--bg-light3);
+  --g-4-2-out: var(--outage2);
+
+  --g-5-1: var(--bg-light2);
+  --g-5-1-out: var(--outage);
+
+  --g-5-2: var(--bg-light3);
+  --g-5-2-out: var(--outage2);
+
+  --g-6-1: var(--bg-light2);
+  --g-6-1-out: var(--outage);
+
+  --g-6-2: var(--bg-light3);
+  --g-6-2-out: var(--outage2);
 }
 
 /* 2. Якщо система попросила темну */
@@ -49,9 +90,10 @@
     --bg: rgba(28, 28, 30, 0.72);
     --bg-light: rgba(44, 44, 46, 0.6);
     --bg-light2: rgba(44, 44, 46, 0.1);
+    --bg-light3: rgba(67, 67, 67, 0.5);
 
     --glass-border: rgba(255, 255, 255, 0.12);
-    --glass-border-subtle: rgba(255, 255, 255, 0.07);
+    --glass-border-subtle: rgba(255, 255, 255, 0.12);
     --glass-highlight: rgba(255, 255, 255, 0.08);
     --glass-shadow: rgba(0, 0, 0, 0.45);
     --glass-inset: rgba(255, 255, 255, 0.05);
@@ -60,17 +102,23 @@
     --text-secondary: rgba(235, 235, 245, 0.5);
     --border: rgba(80, 80, 85, 0.55);
 
-    --outage: rgba(0, 0, 0, 0.35);
-    --accent: rgb(213, 131, 8);
-    --accent-glass: rgba(255, 159, 10, 0.15);
+    --outage: rgba(0, 0, 0, 0.55);
+    --outage2: rgba(15, 15, 15, 0.35);
+
+    --accent: rgba(255, 149, 61, 0.8);
+    --accent-text: rgb(249, 148, 1);
+    --accent-glass: rgba(239, 108, 0, 0.15);
     --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
+
+    --scroll: rgb(94, 94, 94);
+    --scroll-hover: rgb(114, 114, 114);
 
     --select-bg: rgba(44, 44, 46, 0.8);
     --select-shadow: rgba(0, 0, 0, 0.5);
     --option-hover: rgba(255, 255, 255, 0.08);
     --option-scrollbar-thumb: rgba(255, 255, 255, 0.18);
 
-    --scene-bg: linear-gradient(135deg, #0a0a1a 0%, #323232 40%, #0a1a0a 100%);
+    --scene-bg: #323232;
   }
 }
 
@@ -79,9 +127,10 @@
   --bg: rgba(28, 28, 30, 0.72);
   --bg-light: rgba(44, 44, 46, 0.6);
   --bg-light2: rgba(44, 44, 46, 0.1);
+  --bg-light3: rgba(67, 67, 67, 0.5);
 
   --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-border-subtle: rgba(255, 255, 255, 0.07);
+  --glass-border-subtle: rgba(255, 255, 255, 0.12);
   --glass-highlight: rgba(255, 255, 255, 0.08);
   --glass-shadow: rgba(0, 0, 0, 0.45);
   --glass-inset: rgba(255, 255, 255, 0.05);
@@ -90,39 +139,52 @@
   --text-secondary: rgba(235, 235, 245, 0.5);
   --border: rgba(80, 80, 85, 0.55);
 
-  --outage: rgba(0, 0, 0, 0.35);
-  --accent: rgb(213, 131, 8);
-  --accent-glass: rgba(255, 159, 10, 0.15);
+  --outage: rgba(0, 0, 0, 0.55);
+  --outage2: rgba(15, 15, 15, 0.35);
+
+  --accent: rgba(255, 149, 61, 0.8);
+  --accent-text: rgb(249, 148, 1);
+  --accent-glass: rgba(239, 108, 0, 0.15);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
+
+  --scroll: rgb(94, 94, 94);
+  --scroll-hover: rgb(114, 114, 114);
 
   --select-bg: rgba(44, 44, 46, 0.8);
   --select-shadow: rgba(0, 0, 0, 0.5);
   --option-hover: rgba(255, 255, 255, 0.08);
   --option-scrollbar-thumb: rgba(255, 255, 255, 0.18);
 
-  --scene-bg: linear-gradient(135deg, #0a0a1a 0%, #323232 40%, #0a1a0a 100%);
+  --scene-bg: #323232;
 }
 
 /* 4. Якщо користувач натиснув "Світла" */
 [data-theme="light"] {
   --bg: rgba(255, 255, 255, 0.55);
-  --bg-light: rgba(255, 255, 255, 0.4);
+  --bg-light: rgba(255, 255, 255, 0.55);
   --bg-light2: rgba(255, 255, 255, 0.1);
+  --bg-light3: rgba(190, 190, 190, 0.5);
 
   --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-border-subtle: rgba(255, 255, 255, 0.4);
+  --glass-border-subtle: rgba(255, 255, 255, 0.7);
   --glass-highlight: rgba(255, 255, 255, 0.85);
   --glass-shadow: rgba(0, 0, 0, 0.08);
   --glass-inset: rgba(255, 255, 255, 0.6);
 
   --text: rgba(28, 28, 30, 0.92);
-  --text-secondary: rgba(60, 60, 67, 0.6);
+  --text-secondary: rgba(67, 67, 67, 1);
   --border: rgba(200, 215, 228, 0.6);
 
   --outage: rgba(150, 150, 150, 0.3);
+  --outage2: rgba(120, 120, 120, 0.5);
+
   --accent: rgba(255, 159, 10, 1);
-  --accent-glass: rgba(255, 159, 10, 0.18);
+  --accent-text: rgba(255, 159, 10, 1);
+  --accent-glass: rgba(248, 159, 26, 0.18);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
+
+  --scroll: rgb(162, 162, 162);
+  --scroll-hover: rgb(113, 113, 113);
 
   --select-bg: rgba(255, 255, 255, 0.65);
   --select-shadow: rgba(0, 0, 0, 0.12);
