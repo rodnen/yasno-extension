@@ -1,5 +1,11 @@
 > 🌐 [Українська](#українська) | [English](#english)
 
+<p align="center">
+  <img src="./images/screenshot1.png" width="250"/>
+  <img src="./images/screenshot2.png" width="250"/>
+  <img src="./images/screenshot3.png" width="250"/>
+</p>
+
 ## Українська
 ## 🔌 Розширення для графіків відключень в Ураїні (Yasno + DTEK)
 Розширення для браузера, яке дозволяє швидко перевіряти графіки відключень електроенергії (блекаутів) в Україні, використовуючи офіційні дані від **Yasno** та **DTEK**.
