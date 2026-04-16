@@ -5,7 +5,7 @@
 /* 1. Системна тема (за замовчуванням — світла) */
 :root {
   /* Базові поверхні */
-  --bg: rgba(255, 255, 255, 0.55);
+  --bg: rgba(255, 255, 255, 0.8);
   --bg-blur: blur(28px) saturate(1.8);
   --bg-light: rgba(255, 255, 255, 0.55);
   --bg-light2: rgba(255, 255, 255, 0.1);
@@ -36,6 +36,10 @@
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
   --text-accent: #ffffffd6;
 
+  --toast-info: rgb(22, 121, 213);
+  --toast-success: rgb(51, 170, 77);
+  --toast-error: rgb(255, 98, 98);
+
   --scroll: rgb(162, 162, 162);
   --scroll-hover: rgb(113, 113, 113);
   /* Select / Dropdown */
@@ -46,6 +50,10 @@
 
   /* Фонова сцена */
   --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #e8f5e9 100%);
+
+  --danger: rgba(255, 0, 0, 0.15);
+  --danger-hover: rgba(255, 0, 0, 0.4);
+  --danger-glow: 0 0 20px rgba(255, 10, 10, 0.35), 0 0 40px rgba(255, 10, 10, 0.12);
 
   --g-1-1: var(--bg-light2);
   --g-1-1-out: var(--outage);
@@ -110,6 +118,12 @@
     --accent-glass: rgba(239, 108, 0, 0.15);
     --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
 
+    --toast-info: rgb(0, 69, 109);
+    --toast-success: rgb(0, 96, 21);
+    --toast-error: rgba(126, 19, 19);
+
+    --dialog-bg: var(--scene-bg);
+
     --scroll: rgb(94, 94, 94);
     --scroll-hover: rgb(114, 114, 114);
 
@@ -147,6 +161,12 @@
   --accent-glass: rgba(239, 108, 0, 0.15);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
 
+  --toast-info: rgb(0, 69, 109);
+  --toast-success: rgb(0, 96, 21);
+  --toast-error: rgba(126, 19, 19);
+
+  --dialog-bg: var(--scene-bg);
+
   --scroll: rgb(94, 94, 94);
   --scroll-hover: rgb(114, 114, 114);
 
@@ -160,7 +180,7 @@
 
 /* 4. Якщо користувач натиснув "Світла" */
 [data-theme="light"] {
-  --bg: rgba(255, 255, 255, 0.55);
+  --bg: rgba(255, 255, 255, 0.8);
   --bg-light: rgba(255, 255, 255, 0.55);
   --bg-light2: rgba(255, 255, 255, 0.1);
   --bg-light3: rgba(190, 190, 190, 0.5);
@@ -182,6 +202,12 @@
   --accent-text: rgba(255, 159, 10, 1);
   --accent-glass: rgba(248, 159, 26, 0.18);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
+
+  --toast-info: rgb(22, 121, 213);
+  --toast-success: rgb(51, 170, 77);
+  --toast-error: rgb(255, 98, 98);
+
+  --dialog-bg: var(--scene-bg);
 
   --scroll: rgb(162, 162, 162);
   --scroll-hover: rgb(113, 113, 113);

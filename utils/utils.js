@@ -1,5 +1,6 @@
 // utils.js
 const months = Object.freeze(["січ", "лют", "бер", "квіт", "трав", "чер", "лип", "серп", "вер", "жовт", "лист", "груд"]);
+
 /**
  * Утилітарний клас для роботи з Chrome API та загальними функціями
  */
@@ -23,6 +24,11 @@ class Utils {
         return `${d.getDate()} ${months[d.getMonth()]}.`;
     }
 
+    /**
+     * Форматує рядок дати та часу у вигляді "HH:MM день місяць. рік р."
+     * @param {string} dateStr - рядок у форматі "HH:MM DD.MM.YYYY"
+     * @returns {string} - відформатований рядок або "—" якщо дані відсутні
+     */
     static formatFullDateTime(dateStr) {
         if (!dateStr) return '—';
         const [time, datePart] = dateStr.split(' ');
@@ -35,6 +41,11 @@ class Utils {
         return `${time} ${dayNumber} ${months[monthIndex]}. ${year} р.`;
     }
 
+    /**
+     * Форматує об'єкт Date у вигляді "HH:MM день місяць. рік р."
+     * @param {Date|string|number} date - дата для форматування
+     * @returns {string} - відформатований рядок
+     */
     static formatFullDate(date) {
         const d = new Date(date);
         const hours = String(d.getHours()).padStart(2, '0');
@@ -42,6 +53,11 @@ class Utils {
         return `${hours}:${minutes} ${d.getDate()} ${months[d.getMonth()]}. ${d.getFullYear()} р.`;
     }
 
+    /**
+     * Парсить рядок дати у timestamp
+     * @param {string} str - рядок у форматі "HH:MM DD.MM.YYYY"
+     * @returns {number} - timestamp у мілісекундах
+     */
     static parseToTimestamp(str) {
         const [time, date] = str.split(' ');
 
@@ -83,7 +99,8 @@ class Utils {
 
     /**
      * Видаляє дані з chrome.storage.local
-     * @param {Object} key - ключ
+     * @param {string|string[]} key - ключ або масив ключів
+     * @returns {Promise<void>}
      */
     static removeStorageData(key) {
         return chrome.storage.local.remove(key);
@@ -101,6 +118,7 @@ class Utils {
     /**
      * Встановлює режим DTEK для селекта (блокує взаємодію)
      * @param {HTMLElement} el - елемент селекта
+     * @returns {void}
      */
     static setDTEKMode(el) {
         if (!el || el.dataset.hidden === "true") return;
@@ -111,7 +129,7 @@ class Utils {
         const options = el.querySelector(".select-options");
 
         if (trigger) {
-            trigger.textContent = "DTEK";
+            trigger.textContent = "ДТЕК";
         }
 
         if (options) {
@@ -119,13 +137,13 @@ class Utils {
             options.style.opacity = "0.5";
         }
 
-        // Блокуємо відкриття селекта
         el.style.pointerEvents = "none";
     }
 
     /**
-     * Встановлює режим Yasno для селекта (розблоковує взаємодію)
+     * Встановлює режим Yasno для селекта (розблоковує взаємодію та відновлює значення)
      * @param {HTMLElement} el - елемент селекта
+     * @returns {Promise<void>}
      */
     static async setYasnoMode(el) {
         if (!el) return;
@@ -133,14 +151,12 @@ class Utils {
         const trigger = el.querySelector(".select-trigger");
         const options = el.querySelector(".select-options");
 
-        // Розблокування
         el.style.pointerEvents = "";
         if (options) {
             options.style.pointerEvents = "";
             options.style.opacity = "";
         }
 
-        // Отримання збережених даних
         const data = await Utils.getStorageData(['lastGroup', 'lastOsr']);
         const savedValue = data?.lastOsr;
 
@@ -151,7 +167,6 @@ class Utils {
             selectedOption = [...allOptions].find(opt => opt.dataset.value === savedValue);
         }
 
-        // Якщо не знайдено — беремо перший
         if (!selectedOption && allOptions.length > 0) {
             selectedOption = allOptions[0];
         }
@@ -170,6 +185,18 @@ class Utils {
         });
     }
 
+    static setErrorTextarea(el) {
+        el.closest('.custom-textarea')?.classList.add('input-error');
+    }
+
+    static clearErrorTextarea(el) {
+        el.closest('.custom-textarea')?.classList.remove('input-error');
+    }
+
+    /**
+     * Генерує HTML для відображення помилки завантаження
+     * @returns {string} - HTML рядок
+     */
     static buildLoadErrorHTML() {
         return `
         <p class="message">Не вдалося завантажити дані 😢</p>

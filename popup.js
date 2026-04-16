@@ -1,6 +1,7 @@
 import { MODE_STRATEGIES } from './strategies/modeStrategies.js';
 import { SETTLEMENTS } from './data/settlements.js';
 import { Utils } from './utils/utils.js';
+import { ErrorReporter } from './utils/reporter.js';
 
 // ============================================================================
 // КОНСТАНТИ
@@ -21,6 +22,7 @@ const CONSTANTS = {
   REFRESH_MIN_DURATION: 1500,
   THEMES: ['system', 'dark', 'light'],
   EASTER_EGG_DATES: Object.freeze({ today: 6, tomorrow: 7 }),
+  EASTER_EGG_GIF: 'https://cdn.7tv.app/emote/01K91ZKMKBW0EA884967R3MHCM/1x.gif',
   CHECK_INTERVAL: 6 * 60 * 60 * 1000
 };
 
@@ -152,6 +154,7 @@ class DOMElements {
     this.osrSelect = document.querySelector('.osr-select');
     this.versionContainer = document.getElementById('version');
     this.dialog = document.getElementById('dialog');
+    this._dialog = dialog.querySelector("._dialog");
     this.dateGroup = document.getElementById('date-group');
     this.dotsBtn = document.querySelector('#dots-btn .menu');
     this.popupMenu = document.querySelector('.popup-menu');
@@ -266,7 +269,7 @@ class VersionManager {
 
       if (showResult) {
         this.dialogManager.updateContent(
-          `<div class="update-wrapper">${this.getUpdateMessage(result)}</div>`,
+          `<div class="update-wrapper">${this.#getUpdateMessage(result)}</div>`,
           true
         );
       }
@@ -281,7 +284,7 @@ class VersionManager {
     }
   }
 
-  getUpdateMessage({ cmp, latestVer }) {
+  #getUpdateMessage({ cmp, latestVer }) {
     return {
       1: "У вас встановлена новіша версія розширення",
       0: "У вас встановлена остання версія розширення",
@@ -324,10 +327,10 @@ class ThemeManager {
     } else {
       root.setAttribute('data-theme', theme);
     }
-    this.updateButtonUI(theme);
+    this.#updateButtonUI(theme);
   }
 
-  updateButtonUI(theme) {
+  #updateButtonUI(theme) {
     if (!this.dom.themeBtn) return;
 
     const icon = this.dom.themeBtn.querySelector('.menu-icon');
@@ -349,10 +352,12 @@ class ThemeManager {
 // ============================================================================
 class DialogManager {
   #LOADER_HTML = '<div class="update-wrapper"><div class="loader"></div></div>';
-
-  constructor(dom) {
+  #footer_divider = null;
+  #footer_content = null;
+  constructor(dom, messageManager) {
     this.dom = dom;
     this.onCheckUpdate = null;
+    this.messageManager = messageManager;
     this.init();
   }
 
@@ -373,6 +378,38 @@ class DialogManager {
 
   showDialog() {
     this.dom.dialog.classList.add('show');
+  }
+
+  appendFooter(content = null) {
+    if (this.#footer_content) return;
+
+    this.#footer_divider = document.createElement("div");
+    this.#footer_divider.className = "divider";
+
+    this.#footer_content = document.createElement("div");
+    this.#footer_content.className = "footer-content";
+
+    if (content) {
+      this.#footer_content.append(content);
+    }
+
+    this.dom._dialog.appendChild(this.#footer_divider);
+    this.dom._dialog.appendChild(this.#footer_content);
+  }
+
+  removeFooter() {
+    if (!this.#footer_content) return;
+
+    this.#footer_content.remove();
+    this.#footer_divider.remove();
+
+    this.#footer_content = null;
+    this.#footer_divider = null;
+  }
+
+  replaceFooter(content) {
+    this.removeFooter();
+    this.appendFooter(content);
   }
 
   updateTitle(title) {
@@ -401,10 +438,234 @@ class DialogManager {
     this.showDialog();
   }
 
+
+  showBugReport(onSubmit) {
+    const notify = this.messageManager;
+    const saved = ['', ''];
+    let isSubmitting = false;
+
+    const mkValid = (required, min, minMsg, max, maxMsg) => ({
+      required: true,
+      minLength: min,
+      maxLength: max,
+      messages: { required, minLength: minMsg, maxLength: maxMsg }
+    });
+
+    const steps = [
+      {
+        fieldId: 'bug-message',
+        placeholder: 'Наприклад: не відкривається налаштування при кліку на...',
+        validation: mkValid("Опишіть проблему", 5, "Мінімум 5 символів", 500, "Занадто довге повідомлення"),
+        footer: {
+          left: { action: 'cancel-bug', text: 'Скасувати', variant: 'secondary' },
+          right: { action: 'forward-bug', text: 'Далі', icon: 'right' }
+        }
+      },
+      {
+        fieldId: 'bug-stack',
+        placeholder: '1. Відкрив сторінку X\n2. Натиснув кнопку Y\n3. З\'явилась помилка...',
+        validation: mkValid("Опишіть кроки для відтворення", 5, "Мінімум 5 символів", 1000, "Занадто довгий опис дій"),
+        footer: {
+          left: { action: 'back-bug', text: 'Назад', icon: 'left' },
+          right: { action: 'send-bug', text: 'Надіслати', variant: 'primary' }
+        }
+      }
+    ];
+
+    const cleanup = () => {
+      if (this._bugReportHandler) {
+        this.dom.dialog.removeEventListener('click', this._bugReportHandler);
+        this._bugReportHandler = null;
+      }
+    };
+
+    const showValidationToast = (field, validation) => {
+      const duration = 2500;
+      const value = field.value.trim();
+      if (!value && validation.required) {
+        notify?.showToast({
+          text: validation.messages.required,
+          icon: "ic_error",
+          type: 'error',
+          duration
+        });
+        return false;
+      }
+      if (validation.minLength && value.length < validation.minLength) {
+        notify?.showToast({
+          text: validation.messages.minLength,
+          icon: "ic_error",
+          type: 'error',
+          duration
+        });
+        return false;
+      }
+      if (validation.maxLength && value.length > validation.maxLength) {
+        notify?.showToast({
+          text: validation.messages.maxLength,
+          icon: "ic_error",
+          type: 'error',
+          duration
+        });
+        return false;
+      }
+      return true;
+    };
+
+    const renderStep = (index) => {
+      const { fieldId, placeholder, validation, footer } = steps[index];
+
+      this.updateDialog("Повідомити про помилку", `
+      <div class="custom-textarea">
+        <textarea 
+          id="${fieldId}" 
+          placeholder="${placeholder || ' '}"
+          rows="${index === 0 ? '4' : '6'}"
+        ></textarea>
+        <div class="char-counter" data-field="${fieldId}">0/${validation.maxLength}</div>
+      </div>
+    `, true);
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "footer-buttons";
+
+      ['left', 'right'].forEach(side => {
+        const btnData = footer[side];
+        const btn = document.createElement("button");
+        btn.className = `btn ${btnData.variant || 'default'}`;
+        btn.dataset.action = btnData.action;
+
+        const arrowIcon = `<div class="arrow-icon _6px ${btnData.icon}"></div>`;
+        if (btnData.icon === 'left') btn.innerHTML = `${arrowIcon}${btnData.text}`;
+        else if (btnData.icon === 'right') btn.innerHTML = `${btnData.text}${arrowIcon}`;
+        else btn.textContent = btnData.text;
+
+        wrapper.appendChild(btn);
+      });
+
+      this.replaceFooter(wrapper);
+      this.showDialog();
+
+      const field = this.dom.dialogContent.querySelector(`#${fieldId}`);
+      const counter = this.dom.dialogContent.querySelector(`[data-field="${fieldId}"].char-counter`);
+
+      if (saved[index]) field.value = saved[index];
+
+      const updateCounter = () => {
+        const len = field.value.length;
+        if (counter) {
+          counter.textContent = `${len}/${validation.maxLength}`;
+          counter.classList.toggle('warning', len > validation.maxLength * 0.9);
+          counter.classList.toggle('error', len > validation.maxLength);
+        }
+        Utils.clearErrorTextarea(field);
+      };
+
+      field.addEventListener('input', updateCounter);
+      updateCounter();
+
+      cleanup();
+
+      const handler = async (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+
+        if (action === 'cancel-bug') {
+          cleanup();
+          this.closeDialog();
+          notify?.showToast({ text: 'Відправку скасовано', type: 'info', duration: 2000 });
+          return;
+        }
+
+        if (action === 'back-bug') {
+          saved[index] = field.value.trim();
+          cleanup();
+          renderStep(0);
+          return;
+        }
+
+        if (!showValidationToast(field, validation)) {
+          Utils.setErrorTextarea(field);
+          field.focus();
+          return;
+        }
+
+        if (action === 'forward-bug') {
+          saved[index] = field.value.trim();
+          cleanup();
+          renderStep(1);
+          return;
+        }
+
+        if (action === 'send-bug') {
+          if (isSubmitting) return;
+          isSubmitting = true;
+
+          btn.disabled = true;
+          btn.innerHTML = 'Надсилання...';
+
+          const reportData = {
+            error: saved[0],
+            stack: field.value.trim(),
+            mode: CONSTANTS.MODES[(await Utils.getStorageData(['mode'])).mode ?? 0],
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            screen: `${screen.width}x${screen.height}`,
+            version: chrome.runtime.getManifest().version,
+            timestamp: new Date().toISOString()
+          };
+
+          const sendingToastId = notify?.showToast({
+            text: 'Надсилання звіту...',
+            type: 'info',
+            duration: 10000
+          });
+
+          try {
+            await onSubmit?.(reportData);
+
+            if (sendingToastId) notify.hideToast(sendingToastId);
+            notify?.showToast({
+              text: 'Звіт успішно відправлено! Дякуємо',
+              icon: 'ic_check',
+              type: 'success',
+              duration: 4000
+            });
+
+            cleanup();
+            this.closeDialog();
+          } catch (error) {
+            if (sendingToastId) notify.hideToast(sendingToastId);
+            notify?.showToast({
+              text: `Помилка відправки: ${error.message || 'Спробуйте ще раз'}`,
+              icon: 'ic_error',
+              type: 'error',
+              duration: 5000
+            });
+            console.error('Bug report submission failed:', error);
+
+            btn.disabled = false;
+            btn.innerHTML = 'Надіслати';
+            isSubmitting = false;
+          }
+        }
+      };
+
+      this._bugReportHandler = handler;
+      this.dom.dialog.addEventListener('click', handler);
+    };
+
+    renderStep(0);
+  }
+
   closeDialog() {
     this.dom.dialog.classList.remove('show');
     this.dom.dialogTitle.textContent = '';
     this.dom.dialogContent.innerHTML = this.#LOADER_HTML;
+    this.removeFooter();
   }
 }
 
@@ -420,7 +681,7 @@ class DateManager {
 
   init() {
     this.updateDateNumbers();
-    this.setupDateButtons();
+    this.#setupDateButtons();
     this.updateIndicator();
   }
 
@@ -436,22 +697,22 @@ class DateManager {
     if (todayBtn) todayBtn.textContent = Utils.formatDate(today);
     if (tomorrowBtn) tomorrowBtn.textContent = Utils.formatDate(tomorrow);
 
-    this.checkEasterEgg(today);
+    this.#checkEasterEgg(today);
   }
 
-  checkEasterEgg(today) {
+  #checkEasterEgg(today) {
     if (today.getDate() !== CONSTANTS.EASTER_EGG_DATES.today) return;
     if (this.dom.dateGroup.querySelector('.easter')) return;
 
     const easterEgg = Object.assign(document.createElement('img'), {
-      src: 'https://cdn.7tv.app/emote/01K91ZKMKBW0EA884967R3MHCM/1x.gif',
+      src: CONSTANTS.EASTER_EGG_GIF,
       alt: '67',
       className: 'easter'
     });
     this.dom.dateGroup.appendChild(easterEgg);
   }
 
-  setupDateButtons() {
+  #setupDateButtons() {
     this.dom.dateGroup.addEventListener('click', (e) => {
       const btn = e.target.closest('.date-btn');
       if (!btn || btn.classList.contains('active')) return;
@@ -503,7 +764,7 @@ class SelectManager {
 
     document.addEventListener('click', this.handleOutsideClick, true);
 
-    this.selects.forEach(select => this.setupSelect(select));
+    this.selects.forEach(select => this.#setupSelect(select));
     this.loadSavedValues();
   }
 
@@ -511,14 +772,14 @@ class SelectManager {
     const clickedInsideSelect = this.selects.some(({ element }) =>
       element && element.contains(e.target)
     );
-    if (!clickedInsideSelect) this.closeAll();
+    if (!clickedInsideSelect) this.#closeAll();
   }
 
-  closeAll() {
+  #closeAll() {
     this.selects.forEach(({ element }) => element?.classList.remove('open'));
   }
 
-  setupSelect({ element, cacheKey, defaultValue, type }) {
+  #setupSelect({ element, cacheKey, defaultValue, type }) {
     if (!element) return;
 
     element.addEventListener('click', (e) => {
@@ -845,8 +1106,8 @@ class InputManager {
 
     this.retryAttempt = this.retryAttempt || 0;
 
-    const BASE_DELAY = 5000;      
-    const MAX_DELAY = 30000;      
+    const BASE_DELAY = 5000;
+    const MAX_DELAY = 30000;
     const MULTIPLIER = 1.5;
 
     const houseData = this.cache.getHouseData();
@@ -1355,30 +1616,129 @@ class RefreshManager {
 // МЕНЕДЖЕР ПОВІДОМЛЕНЬ
 // ============================================================================
 class MessageManager {
-  constructor(dom) {
-    this.header = dom.header;
+  #maxToastCount = 5;
+  #activeToasts = new Map();
+  #defaultDuration = 3000;
+
+  #elements = {
+    header: null,
+    container: null
+  };
+
+  constructor(dom = {}) {
+    this.#elements.header = dom.header || document.querySelector('header');
+    this.#initContainer();
   }
 
-  show({ text = '', icon = 'ℹ️', type = 'info', id = 'default' } = {}) {
-    if (!this.header) return;
-
-    let block = this.header.querySelector(`.message-block[data-id="${id}"]`);
+  show({ text = '', icon = 'ℹ️', type = 'info', id = 'default', closable = true } = {}) {
+    if (!this.#elements.header) return null;
+    let block = this.#elements.header.querySelector(`.message-block[data-id="${id}"]`);
 
     if (block) {
-      const item = block.querySelector('.message-item');
-      const iconEl = block.querySelector('.message-icon');
-      const textEl = block.querySelector('.message-content span');
-
-      item.className = `message-item message-${type}`;
-      if (iconEl) iconEl.innerHTML = icon;
-      if (textEl) textEl.textContent = text;
-
+      this.#updateMessageBlock(block, { text, icon, type });
       return block;
     }
 
-    block = document.createElement('div');
+    block = this.#createMessageElement({ text, icon, type, id, closable });
+    this.#elements.header.prepend(block);
+
+    requestAnimationFrame(() => {
+      block.style.opacity = '1';
+      block.style.transform = 'translateY(0)';
+    });
+
+    return block;
+  }
+
+  showToast({
+    text = '',
+    icon = 'ic_info',
+    type = 'info',
+    id = null,
+    duration = this.#defaultDuration,
+    emotional = false
+  } = {}) {
+    if (this.#activeToasts.size >= this.#maxToastCount) {
+      const oldestId = this.#activeToasts.keys().next().value;
+      this.hideToast(oldestId);
+    }
+
+    const toastId = id ?? `toast-${Date.now()}-${Math.random()}`;
+
+    if (id && this.#activeToasts.has(id)) {
+      this.#updateToast(id, { text, icon, type, emotional });
+      return toastId;
+    }
+
+    const messageText = emotional && this.#activeToasts.size >= 1
+      ? this.#addEmotionalEnding(text)
+      : text;
+
+    const toast = this.#createToastElement({
+      text: messageText,
+      icon,
+      type,
+      id: toastId
+    });
+
+    this.#elements.container.appendChild(toast);
+
+    const timerId = setTimeout(() => this.hideToast(toastId), duration);
+    this.#activeToasts.set(toastId, { element: toast, timerId });
+
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    return toastId;
+  }
+
+  hideToast(id) {
+    const toastData = this.#activeToasts.get(id);
+    if (!toastData) return;
+
+    const { element, timerId } = toastData;
+    clearTimeout(timerId);
+
+    element.classList.remove('show');
+    element.addEventListener('transitionend', () => {
+      element.remove();
+      this.#activeToasts.delete(id);
+    }, { once: true });
+  }
+
+  hide(block) {
+    if (!block) return;
+
+    block.style.opacity = '0';
+    block.style.transform = 'translateY(-10px)';
+
+    block.addEventListener('transitionend', () => block.remove(), { once: true });
+  }
+
+  clearAllToasts() {
+    this.#activeToasts.forEach((_, id) => this.hideToast(id));
+  }
+
+  clearHeader() {
+    if (!this.#elements.header) return;
+    const blocks = this.#elements.header.querySelectorAll('.message-block');
+    blocks.forEach(block => this.hide(block));
+  }
+
+  #initContainer() {
+    let container = document.querySelector('.validator-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'validator-container';
+      document.body.appendChild(container);
+    }
+    this.#elements.container = container;
+  }
+
+  #createMessageElement({ text, icon, type, id, closable }) {
+    const block = document.createElement('div');
     block.className = 'message-block';
     block.dataset.id = id;
+    block.style.cssText = 'opacity: 0; transform: translateY(-10px); transition: all 0.2s ease;';
 
     const item = document.createElement('div');
     item.className = `message-item message-${type}`;
@@ -1394,25 +1754,64 @@ class MessageManager {
     textEl.textContent = text;
     content.appendChild(textEl);
 
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'cross-icon';
-    closeBtn.addEventListener('click', () => this.hide(block));
+    item.append(iconEl, content);
 
-    item.appendChild(iconEl);
-    item.appendChild(content);
-    // item.appendChild(closeBtn);
+    if (closable) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'cross-icon';
+      closeBtn.innerText = '❌';
+      closeBtn.setAttribute('aria-label', 'Закрити');
+      closeBtn.addEventListener('click', () => this.hide(block), { once: true });
+      item.appendChild(closeBtn);
+    }
 
     block.appendChild(item);
-    this.header.prepend(block);
-
     return block;
   }
 
-  hide(block) {
-    if (!block) return;
-    block.style.opacity = '0';
-    block.style.transform = 'translateY(-10px)';
-    setTimeout(() => block.remove(), 200);
+  #createToastElement({ text, icon, type, id }) {
+    const toast = document.createElement('div');
+    toast.className = `toast-msg toast-${type}`;
+    toast.dataset.id = id;
+
+    if (icon) {
+      const iconEl = document.createElement('span');
+      iconEl.className = `toast-icon ${icon}`;
+      toast.appendChild(iconEl);
+    }
+
+    const textEl = document.createElement('span');
+    textEl.className = 'toast-text';
+    textEl.textContent = text;
+    toast.appendChild(textEl);
+
+    return toast;
+  }
+
+  #updateMessageBlock(block, { text, icon, type }) {
+    const item = block.querySelector('.message-item');
+    const iconEl = block.querySelector('.message-icon');
+    const textEl = block.querySelector('.message-content span');
+
+    if (item) item.className = `message-item message-${type}`;
+    if (iconEl) iconEl.innerHTML = icon;
+    if (textEl) textEl.textContent = text;
+  }
+
+  #updateToast(id, { text, icon, type, emotional }) {
+    const { element } = this.#activeToasts.get(id);
+    const iconEl = element.querySelector('.toast-icon');
+    const textEl = element.querySelector('.toast-text');
+
+    element.className = `toast-msg toast-${type} show`;
+    if (iconEl) iconEl.classList.add(icon);
+    if (textEl) textEl.textContent = emotional ? this.#addEmotionalEnding(text) : text;
+  }
+
+  #addEmotionalEnding(text) {
+    const endings = ['!!!', '😠😡', '😤', '💢', '🤬', '!!! 😠', '😡💥'];
+    const randomEnding = endings[Math.floor(Math.random() * endings.length)];
+    return `${text} ${randomEnding}`;
   }
 }
 
@@ -1420,12 +1819,13 @@ class MessageManager {
 // МЕНЕДЖЕР POPUP-МЕНЮ
 // ============================================================================
 class PopupManager {
-  constructor(dom, dialogManager, dataManager, themeManager, inputManager) {
+  constructor(dom, dialogManager, dataManager, themeManager, inputManager, errorReporter) {
     this.dom = dom;
     this.dialogManager = dialogManager;
     this.dataManager = dataManager;
     this.themeManager = themeManager;
     this.inputManager = inputManager;
+    this.errorReporter = errorReporter;
   }
 
   async init() {
@@ -1488,6 +1888,13 @@ class PopupManager {
         this.themeManager.toggleTheme();
         break;
 
+      case 'bug-report':
+        this.dialogManager.showBugReport((data) => {
+          this.errorReporter.capture(data);
+          this.errorReporter.flush();
+        });
+        break;
+
       case 'about':
         this.dialogManager.showAbout({
           name: CONSTANTS.APP_NAME,
@@ -1510,13 +1917,12 @@ class App {
   async init() {
     const { dom } = this;
 
-    // Завантажуємо весь кеш один раз — далі все читається з пам'яті
     this.cacheManager = new CacheManager();
     await this.cacheManager.load();
 
     this.themeManager = new ThemeManager(dom);
-    this.dialogManager = new DialogManager(dom);
     this.messageManager = new MessageManager(dom);
+    this.dialogManager = new DialogManager(dom, this.messageManager);
     this.versionManager = new VersionManager(dom, this.dialogManager, this.messageManager);
     this.dateManager = new DateManager(dom, () => this.dataManager.loadData());
 
@@ -1537,12 +1943,27 @@ class App {
 
     this.dataManager = new DataManager(dom, this.selectManager, this.dateManager, this.inputManager);
 
+    this.errorReporter = new ErrorReporter({
+      endpoint: "https://docs.google.com/forms/d/e/1FAIpQLScSGSLvZoB6t3RG17AS2ueH0vgCaVl5T813QQElPqkIEMXJKQ/formResponse",
+      fieldsMap: {
+        error: "entry.581983976",
+        stack: "entry.1526738214",
+        mode: "entry.1382745580",
+        userAgent: "entry.1303966238",
+        platform: "entry.1541979604",
+        language: "entry.804086390",
+        screen: "entry.698707174",
+        version: "entry.1787521461"
+      }
+    });
+
     this.popupManager = new PopupManager(
       dom,
       this.dialogManager,
       this.dataManager,
       this.themeManager,
-      this.inputManager
+      this.inputManager,
+      this.errorReporter
     );
 
     // getModeKey — асинхронно зчитує поточний режим для RefreshManager

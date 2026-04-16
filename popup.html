@@ -12,8 +12,8 @@
     <div id="controls">
       <div class="select-wrapper">
 
-        <div class="custom-select queue-select" data-value="all">
-          <label class="select-label">Черга</label>
+        <div class="custom-select queue-select" name="queue" data-value="all">
+          <label for="queue" class="select-label">Черга</label>
           <div class="select-trigger"></div>
           <div class="select-options">
             <div class="option" data-value="all">Усі</div>
@@ -32,8 +32,8 @@
           </div>
         </div>
 
-        <div class="custom-select osr-select has-value" data-value="301">
-          <label class="select-label">ОСР</label>
+        <div class="custom-select osr-select has-value" name="osr" data-value="301">
+          <label for="osr" class="select-label">ОСР</label>
           <div class="select-trigger">ДнЕМ</div>
           <div class="select-options">
             <div class="option" data-value="301">ДнЕМ</div>
@@ -55,17 +55,22 @@
 
           <!-- Popup Menu -->
           <div id="popup-menu" class="popup-menu">
-            <button class="menu-item close-at-click" data-action="refresh">
-              <span class="menu-icon">🔄️</span>
-              <div class="menu-content">
-                <span>Оновити</span>
-              </div>
-            </button>
+            <div class="popup-combined">
+              <button class="menu-item close-at-click" data-action="refresh">
+                <span class="menu-icon">🔄️</span>
+                <div class="menu-content">
+                  <span>Оновити</span>
+                </div>
+              </button>
+              <button class="menu-item close-at-click danger" data-action="bug-report">
+                <span class="menu-icon">🪲</span>
+              </button>
+            </div>
 
             <button class="menu-item" data-action="mode">
               <span class="menu-icon">💡</span>
               <div class="menu-content">
-                <span>DTEK режим</span>
+                <span>ДТЕК режим</span>
                 <label class="switch" for="checkbox">
                   <input type="checkbox" id="checkbox" />
                   <div class="slider round"></div>
@@ -80,7 +85,7 @@
                 <span>Система</span>
               </div>
             </button>
-
+            
             <div class="menu-separator"></div>
 
             <button class="menu-item close-at-click" data-action="about">
@@ -96,7 +101,7 @@
   </header>
 
   <div id="content-wrapper">
-    
+
     <div id="content-box" class="loading">
       <div class="loading-wrapper">
         <div class="loader"></div>
