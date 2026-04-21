@@ -12,7 +12,7 @@
     <div id="controls">
       <div class="select-wrapper">
 
-        <div class="custom-select queue-select" name="queue" data-value="all">
+        <div class="custom-select queue-select" name="queue" data-value="all" title="Черга">
           <label for="queue" class="select-label">Черга</label>
           <div class="select-trigger"></div>
           <div class="select-options">
@@ -32,42 +32,39 @@
           </div>
         </div>
 
-        <div class="custom-select osr-select has-value" name="osr" data-value="301">
+        <div class="custom-select osr-select has-value" name="osr" data-value="301" title="Оператор системи розподілу">
           <label for="osr" class="select-label">ОСР</label>
           <div class="select-trigger">ДнЕМ</div>
           <div class="select-options">
             <div class="option" data-value="301">ДнЕМ</div>
             <div class="option" data-value="303">ЦЕК</div>
+            <!--<div class="option" data-value="kyiv">КЕМ</div>-->
           </div>
         </div>
 
         <div id="date-group" class="date-select">
           <div class="date-indicator"></div>
 
-          <button class="date-btn active" data-type="today"></button>
-          <button class="date-btn" data-type="tomorrow"></button>
+          <button class="date-btn active" data-type="today" title="Сьогодні"></button>
+          <button class="date-btn" data-type="tomorrow" title="Завтра"></button>
         </div>
 
         <div id="dots-btn">
-          <button class="menu combine">
+          <button class="menu combine" title="Відкрити меню Yasno Extension">
             <span class="menu__inner"></span>
           </button>
 
           <!-- Popup Menu -->
           <div id="popup-menu" class="popup-menu">
-            <div class="popup-combined">
-              <button class="menu-item close-at-click" data-action="refresh">
-                <span class="menu-icon">🔄️</span>
-                <div class="menu-content">
-                  <span>Оновити</span>
-                </div>
-              </button>
-              <button class="menu-item close-at-click danger" data-action="bug-report">
-                <span class="menu-icon">🪲</span>
-              </button>
-            </div>
+            
+            <button class="menu-item close-at-click" data-action="refresh" title="Оновити дані">
+              <span class="menu-icon">🔄️</span>
+              <div class="menu-content">
+                <span>Оновити</span>
+              </div>
+            </button>
 
-            <button class="menu-item" data-action="mode">
+            <button class="menu-item" data-action="mode" title="ДТЕК режим">
               <span class="menu-icon">💡</span>
               <div class="menu-content">
                 <span>ДТЕК режим</span>
@@ -78,22 +75,27 @@
               </div>
             </button>
 
-            <button class="menu-item" data-action="theme">
+            <button class="menu-item" data-action="theme" title="Тема">
               <span class="menu-icon">🖥️</span>
               <div class="menu-content">
                 <span>Тема</span>
                 <span>Система</span>
               </div>
             </button>
-            
+
             <div class="menu-separator"></div>
 
-            <button class="menu-item close-at-click" data-action="about">
-              <span class="menu-icon">ℹ️</span>
-              <div class="menu-content">
-                <span>Про розширення</span>
-              </div>
-            </button>
+            <div class="popup-combined">
+              <button class="menu-item close-at-click" data-action="about" title="Про розширення">
+                <span class="menu-icon">ℹ️</span>
+                <div class="menu-content">
+                  <span>Про розширення</span>
+                </div>
+              </button>
+              <button class="menu-item close-at-click danger" data-action="bug-report" title="Повідомити про помилку">
+                <span class="menu-icon">🪲</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -114,6 +116,7 @@
 
   <footer>
     <div class="author">created by <a href="https://github.com/rodnen" target="_blank">rodnen</a></div>
+    <!--<div id="current-mode"><img src="icons/ic_yasno.png"></div>-->
   </footer>
   </div>
 

@@ -118,9 +118,10 @@ class Utils {
     /**
      * Встановлює режим DTEK для селекта (блокує взаємодію)
      * @param {HTMLElement} el - елемент селекта
+     * @param {HTMLElement} mEl - елемент з favicon режиму
      * @returns {void}
      */
-    static setDTEKMode(el) {
+    static setDTEKMode(el, mEl = null) {
         if (!el || el.dataset.hidden === "true") return;
 
         el.dataset.hidden = "true";
@@ -138,14 +139,17 @@ class Utils {
         }
 
         el.style.pointerEvents = "none";
+
+        if (mEl) mEl.querySelector('img').src = "/icons/ic_dtek.png";
     }
 
     /**
      * Встановлює режим Yasno для селекта (розблоковує взаємодію та відновлює значення)
      * @param {HTMLElement} el - елемент селекта
+     * @param {HTMLElement} mEl - елемент з favicon режиму
      * @returns {Promise<void>}
      */
-    static async setYasnoMode(el) {
+    static async setYasnoMode(el, mEl = null) {
         if (!el) return;
 
         const trigger = el.querySelector(".select-trigger");
@@ -177,6 +181,8 @@ class Utils {
             }
             el.dataset.value = selectedOption.dataset.value;
         }
+
+        if (mEl) mEl.querySelector('img').src = "/icons/ic_yasno.png";
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {

@@ -36,12 +36,17 @@
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
   --text-accent: #ffffffd6;
 
-  --toast-info: rgb(22, 121, 213);
-  --toast-success: rgb(51, 170, 77);
-  --toast-error: rgb(255, 98, 98);
+  --toast-info: rgb(221, 227, 253);
+  --toast-info-text: rgb(4, 30, 73);
 
-  --scroll: rgb(162, 162, 162);
-  --scroll-hover: rgb(113, 113, 113);
+  --toast-success: rgb(221, 253, 212);
+  --toast-success-text: rgb(26, 73, 4);
+
+  --toast-error: rgb(253, 211, 211);
+  --toast-error-text: rgb(73, 4, 4);
+
+  --scroll: rgba(162, 162, 162, 0.4);
+  --scroll-hover: rgb(113, 113, 113, 0.8);
   /* Select / Dropdown */
   --select-bg: rgba(255, 255, 255, 0.65);
   --select-shadow: rgba(0, 0, 0, 0.12);
@@ -49,7 +54,7 @@
   --option-scrollbar-thumb: rgba(0, 0, 0, 0.12);
 
   /* Фонова сцена */
-  --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #e8f5e9 100%);
+  --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #ffffff 100%);
 
   --danger: rgba(255, 0, 0, 0.15);
   --danger-hover: rgba(255, 0, 0, 0.4);
@@ -118,21 +123,26 @@
     --accent-glass: rgba(239, 108, 0, 0.15);
     --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
 
-    --toast-info: rgb(0, 69, 109);
-    --toast-success: rgb(0, 96, 21);
-    --toast-error: rgba(126, 19, 19);
+    --toast-info: rgb(0, 74, 119);
+    --toast-info-text: rgb(178, 226, 254);
+
+    --toast-success: rgb(26, 119, 0);
+    --toast-success-text: rgb(191, 254, 178);
+
+    --toast-error: rgb(119, 0, 0);
+    --toast-error-text: rgb(254, 178, 178);
 
     --dialog-bg: var(--scene-bg);
 
-    --scroll: rgb(94, 94, 94);
-    --scroll-hover: rgb(114, 114, 114);
+    --scroll: rgb(94, 94, 94, 0.5);
+    --scroll-hover: rgb(114, 114, 114, 0.8);
 
     --select-bg: rgba(44, 44, 46, 0.8);
     --select-shadow: rgba(0, 0, 0, 0.5);
     --option-hover: rgba(255, 255, 255, 0.08);
     --option-scrollbar-thumb: rgba(255, 255, 255, 0.18);
 
-    --scene-bg: #323232;
+    --scene-bg: #313131;
   }
 }
 
@@ -161,21 +171,27 @@
   --accent-glass: rgba(239, 108, 0, 0.15);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.4), 0 0 50px rgba(255, 159, 10, 0.15);
 
-  --toast-info: rgb(0, 69, 109);
-  --toast-success: rgb(0, 96, 21);
-  --toast-error: rgba(126, 19, 19);
+  --toast-info: rgb(0, 74, 119);
+  --toast-info-text: rgb(178, 226, 254);
+
+  --toast-success: rgb(26, 119, 0);
+  --toast-success-text: rgb(191, 254, 178);
+
+  --toast-error: rgb(119, 0, 0);
+  --toast-error-text: rgb(254, 178, 178);
+
 
   --dialog-bg: var(--scene-bg);
 
-  --scroll: rgb(94, 94, 94);
-  --scroll-hover: rgb(114, 114, 114);
+  --scroll: rgb(94, 94, 94, 0.5);
+  --scroll-hover: rgb(114, 114, 114, 0.8);
 
   --select-bg: rgba(44, 44, 46, 0.8);
   --select-shadow: rgba(0, 0, 0, 0.5);
   --option-hover: rgba(255, 255, 255, 0.08);
   --option-scrollbar-thumb: rgba(255, 255, 255, 0.18);
 
-  --scene-bg: #323232;
+  --scene-bg: #313131;
 }
 
 /* 4. Якщо користувач натиснув "Світла" */
@@ -203,19 +219,24 @@
   --accent-glass: rgba(248, 159, 26, 0.18);
   --accent-glow: 0 0 20px rgba(255, 159, 10, 0.35), 0 0 40px rgba(255, 159, 10, 0.12);
 
-  --toast-info: rgb(22, 121, 213);
-  --toast-success: rgb(51, 170, 77);
-  --toast-error: rgb(255, 98, 98);
+  --toast-info: rgb(221, 227, 253);
+  --toast-info-text: rgb(4, 30, 73);
+
+  --toast-success: rgb(221, 253, 212);
+  --toast-success-text: rgb(26, 73, 4);
+
+  --toast-error: rgb(253, 211, 211);
+  --toast-error-text: rgb(73, 4, 4);
 
   --dialog-bg: var(--scene-bg);
 
-  --scroll: rgb(162, 162, 162);
-  --scroll-hover: rgb(113, 113, 113);
+  --scroll: rgba(162, 162, 162, 0.4);
+  --scroll-hover: rgb(113, 113, 113, 0.8);
 
   --select-bg: rgba(255, 255, 255, 0.65);
   --select-shadow: rgba(0, 0, 0, 0.12);
   --option-hover: rgba(255, 255, 255, 0.55);
   --option-scrollbar-thumb: rgba(0, 0, 0, 0.12);
 
-  --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #e8f5e9 100%);
+  --scene-bg: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 40%, #ffffff 100%);
 }

@@ -165,6 +165,8 @@ class DOMElements {
     this.aboutBtn = this.popupMenu?.querySelector('button[data-action="about"]');
     this.dialogTitle = this.dialog?.querySelector('.title');
     this.dialogContent = this.dialog?.querySelector('.content');
+
+    //this.currentMode = document.getElementById('current-mode');
   }
 
   get dateIndicator() {
@@ -432,7 +434,7 @@ class DialogManager {
           <span class="main-text">${info.name}</span><br>
           <span class="secondary-text">Версія: ${info.version}</span>
         </div>
-        <button data-action="check-update">Перевірити оновлення</button>
+        <button data-action="check-update" title="Перевірити оновлення">Перевірити оновлення</button>
       </div>
     `, true);
     this.showDialog();
@@ -457,8 +459,8 @@ class DialogManager {
         placeholder: 'Наприклад: не відкривається налаштування при кліку на...',
         validation: mkValid("Опишіть проблему", 5, "Мінімум 5 символів", 500, "Занадто довге повідомлення"),
         footer: {
-          left: { action: 'cancel-bug', text: 'Скасувати', variant: 'secondary' },
-          right: { action: 'forward-bug', text: 'Далі', icon: 'right' }
+          left: { action: 'cancel-bug', text: 'Скасувати', variant: 'secondary', title: 'Скасувати' },
+          right: { action: 'forward-bug', text: 'Далі', icon: 'right', title: 'Далі' }
         }
       },
       {
@@ -466,8 +468,8 @@ class DialogManager {
         placeholder: '1. Відкрив сторінку X\n2. Натиснув кнопку Y\n3. З\'явилась помилка...',
         validation: mkValid("Опишіть кроки для відтворення", 5, "Мінімум 5 символів", 1000, "Занадто довгий опис дій"),
         footer: {
-          left: { action: 'back-bug', text: 'Назад', icon: 'left' },
-          right: { action: 'send-bug', text: 'Надіслати', variant: 'primary' }
+          left: { action: 'back-bug', text: 'Назад', icon: 'left', title: 'Назад' },
+          right: { action: 'send-bug', text: 'Надіслати', variant: 'primary', title: 'Надіслати' }
         }
       }
     ];
@@ -532,6 +534,7 @@ class DialogManager {
       ['left', 'right'].forEach(side => {
         const btnData = footer[side];
         const btn = document.createElement("button");
+        btn.title = btnData.title;
         btn.className = `btn ${btnData.variant || 'default'}`;
         btn.dataset.action = btnData.action;
 
@@ -1356,7 +1359,7 @@ class InputManager {
     const container = this.dom.contentWrapper.querySelector('#content-header');
 
     if (!data) {
-      container.innerHTML = `<button id="toggle-outage-btn"><div class="loader small"></div>Оновлення даних</button>`;
+      container.innerHTML = `<button id="toggle-outage-btn" title='Дані завантажуються'><div class="loader small"></div>Оновлення даних</button>`;
       return;
     }
     const hasOutage = data.sub_type?.trim() !== '';
@@ -1387,7 +1390,7 @@ class InputManager {
     }
 
     container.innerHTML = `
-      <button id="toggle-outage-btn">${hasOutage ? "⚠️ За адресою відсутня електроенергія" : "Стан електропостачання"}</button>
+      <button id="toggle-outage-btn" title='Переглянути стан електропостачання'>${hasOutage ? "⚠️ За адресою відсутня електроенергія" : "Стан електропостачання"}</button>
       ${outageHtml}
     `;
 
@@ -1426,26 +1429,27 @@ class InputManager {
 
     const { extended } = await Utils.getStorageData(['extended']);
     const root = document.createElement('div');
+    const disabled = extended !== true ? 'disabled' : '';
     root.className = 'location-root';
     root.dataset.extended = extended ?? 'false';
     root.innerHTML = `
       <div class="input-wrapper">
         <div class="custom-input">
-          <input id="city" class="city-input" placeholder=" " />
+          <input id="city" class="city-input" ${disabled} placeholder=" " />
           <label for="city" class="input-label">Населений пункт</label>
         </div>
         <div class="custom-input">
-          <input id="street" class="street-input" placeholder=" " />
+          <input id="street" class="street-input" ${disabled} placeholder=" " />
           <label for="street" class="input-label">Вулиця</label>
         </div>
         <div class="custom-input">
-          <input id="house" class="house-number-input" placeholder=" " />
+          <input id="house" class="house-number-input" ${disabled} placeholder=" " />
           <label for="house" class="input-label">Номер будинку</label>
         </div>
       </div>
-      <div class="location-btn">
+      <button class="location-btn" title="Розкрити меню">
         <div class="arrow-icon ${extended === true ? 'up' : 'down'}"></div>
-      </div>
+      </button>
     `;
 
     this.dom.controls.appendChild(root);
@@ -1464,6 +1468,11 @@ class InputManager {
       const arrowIcon = this.dom.locationBtn.querySelector('.arrow-icon');
       arrowIcon?.classList.toggle('down', !newExtended);
       arrowIcon?.classList.toggle('up', newExtended);
+
+      const inputs = root.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.disabled = !newExtended;
+      });
     });
 
     if (!this.dom.contentWrapper.querySelector('#content-header')) {
@@ -1760,6 +1769,7 @@ class MessageManager {
       const closeBtn = document.createElement('button');
       closeBtn.className = 'cross-icon';
       closeBtn.innerText = '❌';
+      closeBtn.title = 'Закрити';
       closeBtn.setAttribute('aria-label', 'Закрити');
       closeBtn.addEventListener('click', () => this.hide(block), { once: true });
       item.appendChild(closeBtn);
