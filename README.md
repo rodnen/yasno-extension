@@ -1,12 +1,9 @@
-> 🌐 [Українська](#українська) | [English](#english)
-
 <p align="center">
   <img src="./images/img_1.png" width="250"/>
   <img src="./images/img_2.png" width="250"/>
   <img src="./images/img_3.png" width="250"/>
 </p>
 
-## Українська
 ## 🔌 Розширення для графіків відключень в Ураїні (Yasno + DTEK)
 Розширення для браузера, яке дозволяє швидко перевіряти графіки відключень електроенергії (блекаутів) в Україні, використовуючи офіційні дані від **Yasno** та **DTEK**.
 
@@ -70,68 +67,3 @@ _(Chrome, Edge, Brave, Opera, Vivaldi)_
 - **Не** переміщуйте та не видаляйте папку розширення після встановлення
 - Розпаковані розширення **не проходять перевірку** Chrome Web Store
 - Для роботи в режимі інкогніто потрібно вручну надати дозвіл
-
----
-
-## English
-## 🔌 Ukraine Blackout Schedule Extension (Yasno + DTEK)
-Browser extension that allows you to quickly check power outage schedules (blackouts) in Ukraine using official data from **Yasno** and **DTEK**.
-
-## ⚡ Features
-- 🔍 Get blackout schedules in a few clicks
-- 📊 Supports Yasno and DTEK
-- ⚡ Fast and lightweight
-- 🧩 Works in Chromium browsers
-- 🎯 Simple UI
-
----
-
-# 🧩 Install Extension (Chromium)
-
-Manual installation guide for **Chromium-based browsers**  
-_(Chrome, Edge, Brave, Opera, Vivaldi)_
-
----
-
-## ✅ Requirements
-- Chromium-based browser  
-- Unpacked extension folder with `manifest.json`
-
----
-
-## 🚀 Installation
-
-### 1️⃣ Open Extensions Page
-- chrome://extensions/
-- edge://extensions/
-- opera://extensions/
-  
----
-
-### 2️⃣ Enable Developer Mode
-Turn on **Developer mode** (top-right corner, depends on Browser).
-
----
-
-### 3️⃣ Load Extension
-1. Click [**Load**](https://github.com/rodnen/yasno-extension/releases/latest)
-2. Select the folder containing `manifest.json`
-
-✅ The extension is now installed.
-
----
-
-## 🔄 Update
-After editing files, click **Reload** on the extension card.
-
----
-
-## 🗑️ Remove
-Extensions page → **Remove**
-
----
-
-## ⚠️ Notes
-- Do **not** move or delete the extension folder
-- Unpacked extensions are **not verified** by the Chrome Web Store
-- Incognito mode requires manual permission
